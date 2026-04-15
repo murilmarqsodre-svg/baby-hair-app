@@ -3,151 +3,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baby Hair - Agendamento</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Baby Hair App</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-pink-50 pb-20 text-gray-800">
+<body class="bg-gray-100 font-sans min-h-screen flex flex-col items-center p-4">
 
-    <div id="cliente-view">
-        <header class="bg-white p-6 shadow-sm text-center border-b-2 border-pink-200">
-            <h1 class="text-3xl font-bold text-pink-600">Baby Hair</h1>
-            <p class="text-gray-500 text-sm mt-1">Sua beleza em boas mãos</p>
-        </header>
+    <div class="bg-white p-6 rounded-2xl shadow-lg w-full max-w-md">
+        <h1 class="text-2xl font-bold text-center mb-6 text-gray-800">Agendamento Baby Hair</h1>
 
-        <main class="max-w-md mx-auto mt-8 px-4">
-            <form id="formAgendamento" class="space-y-4">
-                <div class="bg-white p-5 rounded-2xl shadow-md border border-pink-100">
-                    <label class="block text-sm font-bold text-gray-700 mb-3">Escolha o Serviço</label>
-                    <select id="servico" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-500 outline-none" required>
-                        <option value="120">Corte Feminino - R$ 120,00</option>
-                        <option value="70">Escova Modelada - R$ 70,00</option>
-                        <option value="450">Mechas/Iluminada - R$ 450,00</option>
-                        <option value="75">Manicure e Pedicure - R$ 75,00</option>
-                        <option value="45">Design de Sobrancelha - R$ 45,00</option>
-                    </select>
-                </div>
-
-                <div class="bg-white p-5 rounded-2xl shadow-md border border-pink-100">
-                    <label class="block text-sm font-bold text-gray-700 mb-3">Informações de Contato</label>
-                    <input type="text" id="nome" placeholder="Seu Nome" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl mb-3 outline-none focus:border-pink-400" required>
-                    <input type="text" id="sobrenome" placeholder="Sobrenome" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl mb-3 outline-none focus:border-pink-400" required>
-                    <input type="tel" id="contato" placeholder="WhatsApp (DDD + Número)" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-pink-400" required>
-                </div>
-
-                <div class="bg-white p-5 rounded-2xl shadow-md border border-pink-100">
-                    <label class="block text-sm font-bold text-gray-700 mb-3">Pagamento</label>
-                    <select id="pagamento" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none">
-                        <option value="Pix">Pix</option>
-                        <option value="Cartão de Débito">Cartão de Débito</option>
-                        <option value="Cartão de Crédito">Cartão de Crédito</option>
-                        <option value="Dinheiro">Dinheiro</option>
-                    </select>
-                </div>
-
-                <button type="submit" id="btnEnviar" class="w-full bg-pink-600 hover:bg-pink-700 text-white p-4 rounded-2xl font-bold shadow-lg transition-all active:scale-95">
-                    Confirmar Agendamento
-                </button>
-            </form>
-        </main>
-    </div>
-
-    <button onclick="toggleAdmin()" class="fixed bottom-4 right-4 bg-gray-300 text-gray-600 text-[10px] p-2 rounded-full opacity-40 hover:opacity-100 transition-opacity">ADM</button>
-
-    <div id="admin-view" class="hidden fixed inset-0 bg-white z-50 overflow-y-auto p-6">
-        <div class="max-w-md mx-auto">
-            <div class="flex justify-between items-center mb-8">
-                <h2 class="text-2xl font-bold text-gray-800">Financeiro Baby Hair</h2>
-                <button onclick="toggleAdmin()" class="text-pink-600 font-bold bg-pink-50 px-4 py-2 rounded-lg">Sair</button>
-            </div>
-            
-            <div class="bg-gradient-to-br from-green-500 to-green-600 p-8 rounded-3xl text-white mb-8 shadow-xl">
-                <p class="text-sm font-medium opacity-90 mb-1">Faturamento Total</p>
-                <h3 id="receita-total" class="text-4xl font-black">R$ 0,00</h3>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Nome</label>
+                <input type="text" id="cliente_nome" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Digite seu nome">
             </div>
 
-            <h4 class="font-bold text-gray-500 mb-4 text-xs uppercase tracking-widest">Histórico de Vendas</h4>
-            <div id="lista-agendamentos" class="space-y-4">
-                </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Sobrenome</label>
+                <input type="text" id="cliente_sobrenome" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Digite seu sobrenome">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700">WhatsApp</label>
+                <input type="text" id="contato" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="(00) 00000-0000">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Serviço</label>
+                <select id="servico" class="w-full p-3 border rounded-lg bg-white" onchange="atualizarValor()">
+                    <option value="">Selecione um serviço</option>
+                    <option value="Corte Simples" data-preco="30.00">Corte Simples - R$ 30,00</option>
+                    <option value="Corte + Barba" data-preco="50.00">Corte + Barba - R$ 50,00</option>
+                    <option value="Pezinho" data-preco="15.00">Pezinho - R$ 15,00</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Valor</label>
+                <input type="text" id="valor" class="w-full p-3 border rounded-lg bg-gray-50 font-bold text-blue-600" readonly placeholder="R$ 0,00">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Forma de Pagamento</label>
+                <select id="pagamento" class="w-full p-3 border rounded-lg bg-white">
+                    <option value="Dinheiro">Dinheiro</option>
+                    <option value="Pix">Pix</option>
+                    <option value="Cartão">Cartão</option>
+                </select>
+            </div>
+
+            <button onclick="salvarAgendamento()" id="btnConfirmar" class="w-full bg-blue-600 text-white p-4 rounded-xl font-bold hover:bg-blue-700 transition duration-300">
+                Confirmar Agendamento
+            </button>
+
+            <p id="mensagem" class="text-center mt-4 hidden"></p>
         </div>
     </div>
 
     <script>
-        // Configurações do seu Banco de Dados
-        const URL = 'https://htraketscvmlaecbvdum.supabase.co';
-        const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh0cmFrZXRzY3ZtbGFlY2J2ZHVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyMTUzODksImV4cCI6MjA5MTc5MTM4OX0.4MgBEPCcpHxO6vw8X19iWQHD32i2_WfS8F80OQbnet0';
+        // CONFIGURAÇÃO DO SUPABASE (DADOS INSERIDOS CONFORME SOLICITADO)
+        const SUPABASE_URL = 'https://oivvshvlyvzkfclzpxgx.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pdnZzaHZseXZ6a2ZjbHpweGd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTI2NjM5NDMsImV4cCI6MjAyODI0Mzk0M30.4M3NfX08_5pM8J3Y5P9vX0a8Y2e4';
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        const supabase = supabasejs.createClient(URL, KEY);
+        function atualizarValor() {
+            const select = document.getElementById('servico');
+            const valorInput = document.getElementById('valor');
+            const preco = select.options[select.selectedIndex].getAttribute('data-preco');
+            
+            if (preco) {
+                valorInput.value = `R$ ${preco.replace('.', ',')}`;
+                valorInput.setAttribute('data-raw', preco);
+            } else {
+                valorInput.value = 'R$ 0,00';
+            }
+        }
 
-        // Função de Enviar Agendamento
-        document.getElementById('formAgendamento').onsubmit = async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('btnEnviar');
-            btn.innerText = "Salvando...";
-            btn.disabled = true;
+        async function salvarAgendamento() {
+            const btn = document.getElementById('btnConfirmar');
+            const msg = document.getElementById('mensagem');
 
             const dados = {
-                cliente_nome: document.getElementById('nome').value,
-                cliente_sobrenome: document.getElementById('sobrenome').value,
+                cliente_nome: document.getElementById('cliente_nome').value,
+                cliente_sobrenome: document.getElementById('cliente_sobrenome').value,
                 contato: document.getElementById('contato').value,
-                servico: document.getElementById('servico').options[document.getElementById('servico').selectedIndex].text,
-                valor: parseFloat(document.getElementById('servico').value),
+                servico: document.getElementById('servico').value,
+                valor: parseFloat(document.getElementById('valor').getAttribute('data-raw') || 0),
                 pagamento: document.getElementById('pagamento').value
             };
 
-            const { error } = await supabase.from('agendamentos').insert([dados]);
+            if (!dados.cliente_nome || !dados.servico) {
+                alert("Por favor, preencha o nome e o serviço.");
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = "Processando...";
+
+            const { data, error } = await supabase
+                .from('lista_agendamentos')
+                .insert([dados]);
 
             if (error) {
-                alert("Erro ao salvar agendamento: " + error.message);
-                btn.innerText = "Tentar Novamente";
-                btn.disabled = false;
+                console.error('Erro:', error);
+                msg.innerText = "Erro ao agendar: " + error.message;
+                msg.className = "text-center mt-4 text-red-600 font-bold";
             } else {
-                alert("Agendamento realizado com sucesso!");
-                location.reload();
+                msg.innerText = "✅ Agendamento realizado com sucesso!";
+                msg.className = "text-center mt-4 text-green-600 font-bold";
+                // Limpar campos
+                document.querySelectorAll('input').forEach(i => i.value = "");
+                document.getElementById('servico').value = "";
+                document.getElementById('valor').value = "R$ 0,00";
             }
-        };
-
-        // Funções do Painel Administrativo
-        function toggleAdmin() {
-            const admin = document.getElementById('admin-view');
-            admin.classList.toggle('hidden');
-            if (!admin.classList.contains('hidden')) carregarFinanceiro();
-        }
-
-        async function carregarFinanceiro() {
-            const { data, error } = await supabase
-                .from('agendamentos')
-                .select('*')
-                .order('id', { ascending: false });
-
-            if (data) {
-                let total = 0;
-                let html = '';
-                data.forEach(item => {
-                    total += item.valor;
-                    html += `
-                        <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
-                            <div class="flex justify-between items-start mb-2">
-                                <div>
-                                    <p class="font-bold text-gray-800">${item.cliente_nome} ${item.cliente_sobrenome}</p>
-                                    <p class="text-xs text-pink-500 font-semibold">${item.servico}</p>
-                                </div>
-                                <span class="text-green-600 font-bold">R$ ${item.valor.toFixed(2)}</span>
-                            </div>
-                            <div class="flex justify-between text-[10px] text-gray-400 mt-3 pt-3 border-t border-gray-50 uppercase tracking-tighter">
-                                <span>${item.pagamento}</span>
-                                <span>WhatsApp: ${item.contato}</span>
-                            </div>
-                        </div>
-                    `;
-                });
-                document.getElementById('receita-total').innerText = `R$ ${total.toFixed(2)}`;
-                document.getElementById('lista-agendamentos').innerHTML = html || '<p class="text-center text-gray-400 py-10">Ainda não há agendamentos.</p>';
-            }
+            
+            msg.classList.remove('hidden');
+            btn.disabled = false;
+            btn.innerText = "Confirmar Agendamento";
         }
     </script>
 </body>
