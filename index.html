@@ -6,9 +6,8 @@
     <title>Baby Hair App</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* REVERTIDO PARA O SEU LAYOUT ORIGINAL */
         body { font-family: Arial, sans-serif; background-color: #f4f4f4; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .container { background: white; pading: 20px; border-radius: 10px; shadow: 0 0 10px rgba(0,0,0,0.1); width: 300px; padding: 20px; }
+        .container { background: white; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 300px; padding: 20px; }
         h1 { text-align: center; color: #333; }
         label { display: block; margin-top: 10px; color: #666; }
         input, select, button { width: 100%; padding: 10px; margin-top: 5px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box; }
@@ -58,8 +57,9 @@
         const SUPABASE_URL = 'https://oivvshvlyvzkfclzpxgx.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pdnZzaHZseXZ6a2ZjbHpweGd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTI2NjM5NDMsImV4cCI6MjAyODI0Mzk0M30.4M3NfX08_5pM8J3Y5P9vX0a8Y2e4';
         
-        // CORREÇÃO TÉCNICA AQUI
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // Criando a conexão de forma segura
+        const { createClient } = supabase;
+        const _supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
         function atualizarValor() {
             const select = document.getElementById('servico');
@@ -92,27 +92,32 @@
             }
 
             btn.disabled = true;
-            btn.innerText = "Salvando...";
+            btn.innerText = "Enviando...";
 
-            const { data, error } = await _supabase
-                .from('lista_agendamentos')
-                .insert([dados]);
+            try {
+                const { error } = await _supabase
+                    .from('lista_agendamentos')
+                    .insert([dados]);
 
-            if (error) {
-                msg.innerText = "Erro: " + error.message;
-                msg.style.color = "red";
-            } else {
-                msg.innerText = "✅ Sucesso!";
+                if (error) throw error;
+
+                msg.innerText = "✅ Agendamento Realizado!";
                 msg.style.color = "green";
-                // Limpa os campos
+                // Limpar campos
                 document.getElementById('cliente_nome').value = "";
                 document.getElementById('cliente_sobrenome').value = "";
                 document.getElementById('contato').value = "";
                 document.getElementById('servico').value = "";
                 document.getElementById('valor').value = "R$ 0,00";
+
+            } catch (err) {
+                console.error(err);
+                msg.innerText = "Erro ao salvar. Tente novamente.";
+                msg.style.color = "red";
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Confirmar Agendamento";
             }
-            btn.disabled = false;
-            btn.innerText = "Confirmar Agendamento";
         }
     </script>
 </body>
