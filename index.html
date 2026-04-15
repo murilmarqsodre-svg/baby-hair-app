@@ -5,77 +5,71 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Baby Hair App</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* REVERTIDO PARA O SEU LAYOUT ORIGINAL */
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .container { background: white; pading: 20px; border-radius: 10px; shadow: 0 0 10px rgba(0,0,0,0.1); width: 300px; padding: 20px; }
+        h1 { text-align: center; color: #333; }
+        label { display: block; margin-top: 10px; color: #666; }
+        input, select, button { width: 100%; padding: 10px; margin-top: 5px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box; }
+        button { background-color: #28a745; color: white; border: none; cursor: pointer; margin-top: 20px; font-weight: bold; }
+        button:hover { background-color: #218838; }
+        #mensagem { text-align: center; margin-top: 15px; font-weight: bold; }
+    </style>
 </head>
-<body class="bg-gray-100 font-sans min-h-screen flex flex-col items-center p-4">
+<body>
 
-    <div class="bg-white p-6 rounded-2xl shadow-lg w-full max-w-md">
-        <h1 class="text-2xl font-bold text-center mb-6 text-gray-800">Agendamento Baby Hair</h1>
+    <div class="container">
+        <h1>Baby Hair App</h1>
 
-        <div class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Nome</label>
-                <input type="text" id="cliente_nome" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Digite seu nome">
-            </div>
+        <label>Nome</label>
+        <input type="text" id="cliente_nome" placeholder="Seu nome">
 
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Sobrenome</label>
-                <input type="text" id="cliente_sobrenome" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Digite seu sobrenome">
-            </div>
+        <label>Sobrenome</label>
+        <input type="text" id="cliente_sobrenome" placeholder="Seu sobrenome">
 
-            <div>
-                <label class="block text-sm font-medium text-gray-700">WhatsApp</label>
-                <input type="text" id="contato" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="(00) 00000-0000">
-            </div>
+        <label>WhatsApp</label>
+        <input type="text" id="contato" placeholder="(00) 00000-0000">
 
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Serviço</label>
-                <select id="servico" class="w-full p-3 border rounded-lg bg-white" onchange="atualizarValor()">
-                    <option value="">Selecione um serviço</option>
-                    <option value="Corte Simples" data-preco="30.00">Corte Simples - R$ 30,00</option>
-                    <option value="Corte + Barba" data-preco="50.00">Corte + Barba - R$ 50,00</option>
-                    <option value="Pezinho" data-preco="15.00">Pezinho - R$ 15,00</option>
-                </select>
-            </div>
+        <label>Serviço</label>
+        <select id="servico" onchange="atualizarValor()">
+            <option value="">Selecione...</option>
+            <option value="Corte Simples" data-preco="30.00">Corte Simples - R$ 30,00</option>
+            <option value="Corte + Barba" data-preco="50.00">Corte + Barba - R$ 50,00</option>
+            <option value="Pezinho" data-preco="15.00">Pezinho - R$ 15,00</option>
+        </select>
 
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Valor</label>
-                <input type="text" id="valor" class="w-full p-3 border rounded-lg bg-gray-50 font-bold text-blue-600" readonly placeholder="R$ 0,00">
-            </div>
+        <label>Valor</label>
+        <input type="text" id="valor" readonly placeholder="R$ 0,00">
 
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Forma de Pagamento</label>
-                <select id="pagamento" class="w-full p-3 border rounded-lg bg-white">
-                    <option value="Dinheiro">Dinheiro</option>
-                    <option value="Pix">Pix</option>
-                    <option value="Cartão">Cartão</option>
-                </select>
-            </div>
+        <label>Pagamento</label>
+        <select id="pagamento">
+            <option value="Dinheiro">Dinheiro</option>
+            <option value="Pix">Pix</option>
+            <option value="Cartão">Cartão</option>
+        </select>
 
-            <button onclick="salvarAgendamento()" id="btnConfirmar" class="w-full bg-blue-600 text-white p-4 rounded-xl font-bold hover:bg-blue-700 transition duration-300">
-                Confirmar Agendamento
-            </button>
+        <button onclick="salvarAgendamento()" id="btnConfirmar">Confirmar Agendamento</button>
 
-            <p id="mensagem" class="text-center mt-4 hidden"></p>
-        </div>
+        <p id="mensagem"></p>
     </div>
 
     <script>
-        // CONFIGURAÇÃO DO SUPABASE (DADOS INSERIDOS CONFORME SOLICITADO)
         const SUPABASE_URL = 'https://oivvshvlyvzkfclzpxgx.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pdnZzaHZseXZ6a2ZjbHpweGd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTI2NjM5NDMsImV4cCI6MjAyODI0Mzk0M30.4M3NfX08_5pM8J3Y5P9vX0a8Y2e4';
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        // CORREÇÃO TÉCNICA AQUI
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         function atualizarValor() {
             const select = document.getElementById('servico');
             const valorInput = document.getElementById('valor');
             const preco = select.options[select.selectedIndex].getAttribute('data-preco');
-            
             if (preco) {
-                valorInput.value = `R$ ${preco.replace('.', ',')}`;
+                valorInput.value = "R$ " + preco.replace('.', ',');
                 valorInput.setAttribute('data-raw', preco);
             } else {
-                valorInput.value = 'R$ 0,00';
+                valorInput.value = "R$ 0,00";
             }
         }
 
@@ -93,31 +87,30 @@
             };
 
             if (!dados.cliente_nome || !dados.servico) {
-                alert("Por favor, preencha o nome e o serviço.");
+                alert("Preencha nome e serviço!");
                 return;
             }
 
             btn.disabled = true;
-            btn.innerText = "Processando...";
+            btn.innerText = "Salvando...";
 
-            const { data, error } = await supabase
+            const { data, error } = await _supabase
                 .from('lista_agendamentos')
                 .insert([dados]);
 
             if (error) {
-                console.error('Erro:', error);
-                msg.innerText = "Erro ao agendar: " + error.message;
-                msg.className = "text-center mt-4 text-red-600 font-bold";
+                msg.innerText = "Erro: " + error.message;
+                msg.style.color = "red";
             } else {
-                msg.innerText = "✅ Agendamento realizado com sucesso!";
-                msg.className = "text-center mt-4 text-green-600 font-bold";
-                // Limpar campos
-                document.querySelectorAll('input').forEach(i => i.value = "");
+                msg.innerText = "✅ Sucesso!";
+                msg.style.color = "green";
+                // Limpa os campos
+                document.getElementById('cliente_nome').value = "";
+                document.getElementById('cliente_sobrenome').value = "";
+                document.getElementById('contato').value = "";
                 document.getElementById('servico').value = "";
                 document.getElementById('valor').value = "R$ 0,00";
             }
-            
-            msg.classList.remove('hidden');
             btn.disabled = false;
             btn.innerText = "Confirmar Agendamento";
         }
