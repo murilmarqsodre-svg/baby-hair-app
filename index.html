@@ -7,117 +7,69 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { font-family: Arial, sans-serif; background-color: #f4f4f4; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .container { background: white; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 300px; padding: 20px; }
-        h1 { text-align: center; color: #333; }
-        label { display: block; margin-top: 10px; color: #666; }
-        input, select, button { width: 100%; padding: 10px; margin-top: 5px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box; }
-        button { background-color: #28a745; color: white; border: none; cursor: pointer; margin-top: 20px; font-weight: bold; }
+        .container { background: white; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 320px; padding: 25px; }
+        h1 { text-align: center; color: #333; margin-bottom: 20px; }
+        label { display: block; margin-top: 10px; color: #666; font-size: 14px; }
+        input, select, button { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; font-size: 16px; }
+        button { background-color: #28a745; color: white; border: none; cursor: pointer; margin-top: 25px; font-weight: bold; transition: 0.3s; }
         button:hover { background-color: #218838; }
         #mensagem { text-align: center; margin-top: 15px; font-weight: bold; }
     </style>
 </head>
 <body>
-
     <div class="container">
         <h1>Baby Hair App</h1>
-
-        <label>Nome</label>
-        <input type="text" id="cliente_nome" placeholder="Seu nome">
-
-        <label>Sobrenome</label>
-        <input type="text" id="cliente_sobrenome" placeholder="Seu sobrenome">
-
+        <label>Seu Nome</label>
+        <input type="text" id="cliente_nome" placeholder="Ex: Murilo">
         <label>WhatsApp</label>
-        <input type="text" id="contato" placeholder="(00) 00000-0000">
-
-        <label>Serviço</label>
-        <select id="servico" onchange="atualizarValor()">
+        <input type="text" id="contato" placeholder="(73) 99999-9999">
+        <label>Escolha o Serviço</label>
+        <select id="servico">
             <option value="">Selecione...</option>
-            <option value="Corte Simples" data-preco="30.00">Corte Simples - R$ 30,00</option>
-            <option value="Corte + Barba" data-preco="50.00">Corte + Barba - R$ 50,00</option>
-            <option value="Pezinho" data-preco="15.00">Pezinho - R$ 15,00</option>
+            <option value="Corte Simples">Corte Simples - R$ 30,00</option>
+            <option value="Corte + Barba">Corte + Barba - R$ 50,00</option>
+            <option value="Pezinho">Pezinho - R$ 15,00</option>
         </select>
-
-        <label>Valor</label>
-        <input type="text" id="valor" readonly placeholder="R$ 0,00">
-
-        <label>Pagamento</label>
-        <select id="pagamento">
-            <option value="Dinheiro">Dinheiro</option>
-            <option value="Pix">Pix</option>
-            <option value="Cartão">Cartão</option>
-        </select>
-
-        <button onclick="salvarAgendamento()" id="btnConfirmar">Confirmar Agendamento</button>
-
+        <button onclick="salvar()" id="btn">Confirmar Agendamento</button>
         <p id="mensagem"></p>
     </div>
 
     <script>
         const SUPABASE_URL = 'https://oivvshvlyvzkfclzpxgx.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pdnZzaHZseXZ6a2ZjbHpweGd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTI2NjM5NDMsImV4cCI6MjAyODI0Mzk0M30.4M3NfX08_5pM8J3Y5P9vX0a8Y2e4';
-        
-        // Criando a conexão de forma segura
-        const { createClient } = supabase;
-        const _supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        function atualizarValor() {
-            const select = document.getElementById('servico');
-            const valorInput = document.getElementById('valor');
-            const preco = select.options[select.selectedIndex].getAttribute('data-preco');
-            if (preco) {
-                valorInput.value = "R$ " + preco.replace('.', ',');
-                valorInput.setAttribute('data-raw', preco);
-            } else {
-                valorInput.value = "R$ 0,00";
-            }
-        }
-
-        async function salvarAgendamento() {
-            const btn = document.getElementById('btnConfirmar');
+        async function salvar() {
+            const btn = document.getElementById('btn');
             const msg = document.getElementById('mensagem');
+            const nome = document.getElementById('cliente_nome').value;
+            const zap = document.getElementById('contato').value;
+            const serv = document.getElementById('servico').value;
 
-            const dados = {
-                cliente_nome: document.getElementById('cliente_nome').value,
-                cliente_sobrenome: document.getElementById('cliente_sobrenome').value,
-                contato: document.getElementById('contato').value,
-                servico: document.getElementById('servico').value,
-                valor: parseFloat(document.getElementById('valor').getAttribute('data-raw') || 0),
-                pagamento: document.getElementById('pagamento').value
-            };
-
-            if (!dados.cliente_nome || !dados.servico) {
-                alert("Preencha nome e serviço!");
+            if (!nome || !serv) {
+                alert("Preencha seu nome e escolha um serviço!");
                 return;
             }
 
             btn.disabled = true;
             btn.innerText = "Enviando...";
 
-            try {
-                const { error } = await _supabase
-                    .from('lista_agendamentos')
-                    .insert([dados]);
+            const { error } = await _supabase
+                .from('lista_agendamentos')
+                .insert([{ cliente_nome: nome, contato: zap, servico: serv }]);
 
-                if (error) throw error;
-
-                msg.innerText = "✅ Agendamento Realizado!";
+            if (error) {
+                msg.innerText = "Erro: " + error.message;
+                msg.style.color = "red";
+            } else {
+                msg.innerText = "✅ Agendamento realizado!";
                 msg.style.color = "green";
-                // Limpar campos
                 document.getElementById('cliente_nome').value = "";
-                document.getElementById('cliente_sobrenome').value = "";
                 document.getElementById('contato').value = "";
                 document.getElementById('servico').value = "";
-                document.getElementById('valor').value = "R$ 0,00";
-
-            } catch (err) {
-                console.error(err);
-                msg.innerText = "Erro ao salvar. Tente novamente.";
-                msg.style.color = "red";
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "Confirmar Agendamento";
             }
+            btn.disabled = false;
+            btn.innerText = "Confirmar Agendamento";
         }
     </script>
 </body>
