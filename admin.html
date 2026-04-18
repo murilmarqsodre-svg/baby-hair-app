@@ -2,90 +2,94 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baby Hair - Admin Vercel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Baby Hair - Admin Mobile</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root { --accent: #e19d9d; --bg: #0a0a0a; --card: #161616; --text: #ffffff; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 80px; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 90px; overflow-x: hidden; }
         
-        .container { padding: 20px; max-width: 1200px; margin: auto; }
-        .header { display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid #333; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid #222; background: var(--bg); position: sticky; top: 0; z-index: 100; }
+        .container { padding: 15px; max-width: 600px; margin: auto; }
         
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
-        .stat-card { background: var(--card); padding: 20px; border-radius: 15px; border: 1px solid #222; text-align: center; }
-        .stat-card h3 { color: var(--accent); margin: 0; font-size: 22px; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
+        .stat-card { background: var(--card); padding: 18px; border-radius: 15px; border: 1px solid #222; text-align: center; }
+        .stat-card h3 { color: var(--accent); margin: 0; font-size: 20px; }
+        .stat-card p { margin: 5px 0 0; font-size: 12px; color: #888; }
         
-        .form-box { background: var(--card); padding: 20px; border-radius: 20px; margin-top: 25px; border: 1px solid #222; }
-        input { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 10px; border: 1px solid #333; background: #000; color: white; box-sizing: border-box; }
-        .btn-primary { background: var(--accent); color: white; border: none; padding: 15px; border-radius: 10px; font-weight: bold; width: 100%; cursor: pointer; transition: 0.3s; }
-        .btn-primary:hover { background: #d08a8a; }
+        .form-box { background: var(--card); padding: 20px; border-radius: 20px; margin-top: 20px; border: 1px solid #222; }
+        h3 { margin-top: 0; font-weight: 400; color: var(--accent); font-size: 18px; }
+        input { width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 10px; border: 1px solid #333; background: #000; color: white; box-sizing: border-box; font-size: 16px; }
+        .btn-primary { background: var(--accent); color: white; border: none; padding: 16px; border-radius: 12px; font-weight: bold; width: 100%; cursor: pointer; font-size: 16px; }
         
-        .tab-bar { position: fixed; bottom: 0; width: 100%; background: #111; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #333; }
-        .tab-item { color: #666; font-size: 12px; text-align: center; cursor: pointer; }
+        /* Menu Inferior Fixo */
+        .tab-bar { position: fixed; bottom: 0; width: 100%; background: #111; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #222; box-shadow: 0 -5px 15px rgba(0,0,0,0.5); }
+        .tab-item { color: #666; font-size: 11px; text-align: center; cursor: pointer; flex: 1; }
         .tab-item.active { color: var(--accent); font-weight: bold; }
+        .tab-icon { font-size: 22px; margin-bottom: 4px; }
 
         .hidden { display: none; }
+        canvas { max-height: 250px !important; }
     </style>
 </head>
 <body id="admin-body" class="hidden">
 
 <div class="header">
-    <h2 style="color: var(--accent); font-weight: 300;">Baby Admin</h2>
-    <button onclick="copyClientLink()" style="background: #25d366; color: white; border: none; padding: 8px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; cursor: pointer;">🔗 Link WhatsApp</button>
+    <h2 style="color: var(--accent); font-weight: 300; margin: 0; font-size: 20px;">Baby Admin</h2>
+    <button onclick="copyClientLink()" style="background: #25d366; color: white; border: none; padding: 8px 14px; border-radius: 20px; font-size: 11px; font-weight: bold;">🔗 LINK CLIENTE</button>
 </div>
 
 <div class="container">
     <div id="section-dash" class="content-section">
         <div class="stats-grid">
-            <div class="stat-card"><h3>R$ 0,00</h3><p>Receita</p></div>
-            <div class="stat-card"><h3>0</h3><p>Serviços</p></div>
+            <div class="stat-card"><h3>R$ 0,00</h3><p>Ganhos Hoje</p></div>
+            <div class="stat-card"><h3>0</h3><p>Agendamentos</p></div>
         </div>
-        <div style="margin-top: 20px; background: #161616; border-radius: 15px; padding: 15px;">
+        <div style="margin-top: 20px; background: #161616; border-radius: 20px; padding: 15px; border: 1px solid #222;">
+            <p style="font-size: 12px; color: #888; margin-bottom: 10px;">Fluxo Semanal</p>
             <canvas id="chartMobile"></canvas>
         </div>
     </div>
 
     <div id="section-manage" class="content-section hidden">
         <div class="form-box">
-            <h3>Novo Serviço</h3>
-            <input type="text" id="svc-nome" placeholder="Ex: Corte Degradê">
+            <h3>+ Novo Serviço</h3>
+            <input type="text" id="svc-nome" placeholder="Nome (ex: Barba e Cabelo)">
             <input type="number" id="svc-preco" placeholder="Preço R$">
             <button class="btn-primary" onclick="saveData('servicos_cadastrados')">Salvar Serviço</button>
         </div>
 
-        <div class="form-box">
-            <h3>Novo Mimo (Produto)</h3>
-            <input type="text" id="prod-nome" placeholder="Ex: Gel Fixador">
+        <div class="form-box" style="margin-bottom: 30px;">
+            <h3>+ Novo Mimo (Produto)</h3>
+            <input type="text" id="prod-nome" placeholder="Nome do Produto">
             <input type="number" id="prod-preco" placeholder="Preço R$">
             <input type="text" id="prod-img" placeholder="Link da Foto">
-            <button class="btn-primary" onclick="saveData('produtos_cadastrados')">Salvar Produto</button>
+            <button class="btn-primary" onclick="saveData('produtos_cadastrados')">Adicionar à Vitrine</button>
         </div>
     </div>
 </div>
 
 <div class="tab-bar">
-    <div class="tab-item active" onclick="switchTab('dash')">📊<br>Início</div>
-    <div class="tab-item" onclick="switchTab('manage')">🛠️<br>Cadastros</div>
-    <div class="tab-item" onclick="location.reload()">🔄<br>Atualizar</div>
+    <div class="tab-item active" onclick="switchTab('dash')"><div class="tab-icon">📊</div>Início</div>
+    <div class="tab-item" onclick="switchTab('manage')"><div class="tab-icon">🛠️</div>Cadastros</div>
+    <div class="tab-item" onclick="location.reload()"><div class="tab-icon">🔄</div>Recarregar</div>
 </div>
 
 <script>
-    // Configurações Supabase do Murilo
     const SUPABASE_URL = 'https://htraketscvmlaecbvdum.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_kpTujdxJLja9w0YrfVHqkg_o2VrRgzy';
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     const MEU_ID = 1;
 
-    // LOGIN DE ACESSO (1234)
+    // SENHA DE ACESSO
     const senhaAcesso = "1234"; 
-    const login = prompt("Senha de Acesso ao Painel:");
+    const login = prompt("Senha Administrativa:");
 
     if(login === senhaAcesso) {
         document.getElementById('admin-body').classList.remove('hidden');
     } else {
-        alert("Senha incorreta!");
+        alert("Acesso negado.");
         window.location.href = "index.html";
     }
 
@@ -102,52 +106,63 @@
         const preco = document.getElementById(isSvc ? 'svc-preco' : 'prod-preco').value;
         const extra = isSvc ? {} : { imagem_url: document.getElementById('prod-img').value };
 
-        if(!nome || !preco) return alert("Por favor, preencha nome e preço!");
+        if(!nome || !preco) return alert("Preencha os campos obrigatórios!");
 
         const { error } = await _supabase.from(tabela).insert([
             { nome: nome, preco: parseFloat(preco), admin_id: MEU_ID, ...extra }
         ]);
 
         if(!error) { 
-            alert("Sucesso! O item já está no banco de dados."); 
+            alert("Sucesso! Item cadastrado."); 
             location.reload(); 
         } else { 
-            alert("Erro ao salvar: " + error.message); 
+            alert("Erro: " + error.message); 
         }
     }
 
     function copyClientLink() {
-        // Gera o link baseado na URL atual (Vercel)
-        let cleanUrl = window.location.href.split('/admin.html')[0];
-        
-        // Se estiver rodando local, ele avisa, se estiver no vercel ele gera o link certo
-        if(cleanUrl.startsWith('file:///')) {
-            alert("Atenção: Você está rodando o arquivo local. O link final será gerado quando você subir para o Vercel!");
-            return;
+        let currentUrl = window.location.href;
+        let finalLink = "";
+
+        // Se estiver rodando no Vercel/Web
+        if (currentUrl.startsWith('http')) {
+            let cleanUrl = currentUrl.split('/admin.html')[0];
+            finalLink = `${cleanUrl}/index.html?salao=${MEU_ID}`;
+        } 
+        // Se estiver rodando localmente (file://)
+        else {
+            let manualUrl = prompt("Você está testando localmente. Para o WhatsApp, qual o seu link do Vercel? (Ex: baby-hair.vercel.app)");
+            if (!manualUrl) return;
+            if (!manualUrl.startsWith('http')) manualUrl = 'https://' + manualUrl;
+            finalLink = `${manualUrl}/index.html?salao=${MEU_ID}`;
         }
 
-        const finalLink = `${cleanUrl}/index.html?salao=${MEU_ID}`;
-        navigator.clipboard.writeText(finalLink);
-        alert("Link do seu salão copiado para o WhatsApp!\n" + finalLink);
+        navigator.clipboard.writeText(finalLink).then(() => {
+            alert("Link do Salão copiado para o WhatsApp!\n" + finalLink);
+        });
     }
 
-    // Inicialização do Gráfico
+    // Gráfico Simplificado para Mobile
     const ctx = document.getElementById('chartMobile').getContext('2d');
     new Chart(ctx, {
-        type: 'bar',
+        type: 'line',
         data: {
             labels: ['S', 'T', 'Q', 'Q', 'S', 'S'],
             datasets: [{
-                label: 'Cortes da Semana',
-                data: [10, 15, 8, 12, 20, 30],
-                backgroundColor: '#e19d9d',
-                borderRadius: 5
+                data: [5, 15, 10, 20, 18, 25],
+                borderColor: '#e19d9d',
+                backgroundColor: 'rgba(225, 157, 157, 0.1)',
+                fill: true,
+                tension: 0.4,
+                borderWidth: 2,
+                pointRadius: 0
             }]
         },
         options: { 
             responsive: true, 
             maintainAspectRatio: false,
-            scales: { y: { display: false }, x: { grid: { display: false } } } 
+            plugins: { legend: { display: false } },
+            scales: { y: { display: false }, x: { grid: { display: false }, ticks: { color: '#555' } } } 
         }
     });
 </script>
