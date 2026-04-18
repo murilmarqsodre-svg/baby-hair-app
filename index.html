@@ -3,111 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baby Hair - Agendamento</title>
+    <title>Baby Hair - Oficial</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
+        /* ESTILO ORIGINAL VALIDADO POR VOCÊ */
         :root { --accent: #e19d9d; --bg: #0a0a0a; --card: #161616; --text: #ffffff; }
         body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         
-        .header { text-align: center; margin-bottom: 40px; margin-top: 20px; }
+        .header { text-align: center; margin-top: 30px; margin-bottom: 20px; }
         .header h1 { font-weight: 300; letter-spacing: 4px; color: var(--accent); text-transform: uppercase; margin: 0; }
         .header p { color: #666; font-size: 14px; margin-top: 5px; }
 
-        .services-container { width: 100%; max-width: 450px; }
+        .container { width: 100%; max-width: 450px; }
         
-        .service-card { 
-            background: var(--card); 
-            border: 1px solid #222; 
-            border-radius: 20px; 
-            padding: 20px; 
-            margin-bottom: 15px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-        .service-card:active { transform: scale(0.98); }
-        
-        .service-info h3 { margin: 0; font-size: 18px; font-weight: 500; color: #eee; }
-        .service-info p { margin: 5px 0 0; color: var(--accent); font-weight: bold; font-size: 16px; }
+        .input-group { margin-bottom: 12px; width: 100%; }
+        input, select { width: 100%; padding: 15px; border-radius: 15px; border: 1px solid #222; background: #000; color: #fff; box-sizing: border-box; font-size: 16px; outline: none; }
+        input:focus { border-color: var(--accent); }
 
-        /* CARROSSEL DE PRODUTOS ORIGINAL */
-        .carousel-container { width: 100%; max-width: 450px; overflow-x: auto; display: flex; gap: 15px; padding-bottom: 20px; scrollbar-width: none; }
-        .carousel-container::-webkit-scrollbar { display: none; }
-        
-        .product-card { min-width: 150px; background: var(--card); border: 1px solid #222; border-radius: 20px; padding: 10px; text-align: center; }
-        .product-card img { width: 100%; height: 120px; border-radius: 15px; object-fit: cover; margin-bottom: 10px; }
-        .product-card h4 { margin: 5px 0; font-size: 14px; }
-        .product-card span { color: var(--accent); font-weight: bold; }
+        .section-title { color: var(--accent); font-size: 11px; text-transform: uppercase; letter-spacing: 2px; margin: 25px 0 12px; border-bottom: 1px solid #222; padding-bottom: 5px; width: 100%; }
 
-        .btn-book { background-color: var(--accent); color: white; border: none; padding: 12px 20px; border-radius: 12px; font-weight: bold; cursor: pointer; }
+        .service-card { background: var(--card); border: 1px solid #222; border-radius: 20px; padding: 18px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.3s; }
+        .service-card.active { border-color: var(--accent); background: #1f1f1f; }
+        .service-info h3 { margin: 0; font-size: 17px; font-weight: 500; }
+        .service-info p { margin: 4px 0 0; color: var(--accent); font-weight: bold; }
+
+        /* CARROSSEL ORIGINAL */
+        .carousel { display: flex; overflow-x: auto; gap: 12px; padding-bottom: 10px; scrollbar-width: none; width: 100%; }
+        .carousel::-webkit-scrollbar { display: none; }
+        .product-card { min-width: 140px; background: var(--card); border-radius: 20px; padding: 10px; border: 1px solid #222; text-align: center; }
+        .product-card img { width: 100%; height: 110px; border-radius: 15px; object-fit: cover; }
+        .product-card h4 { margin: 8px 0 3px; font-size: 13px; font-weight: 400; }
+        
+        .btn-confirm { background: var(--accent); color: white; border: none; padding: 20px; border-radius: 18px; width: 100%; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 25px; box-shadow: 0 8px 20px rgba(225, 157, 157, 0.2); }
     </style>
 </head>
 <body>
 
     <div class="header">
         <h1>BABY HAIR</h1>
-        <p>Agendamento Exclusivo</p>
+        <p>Agendamento Premium</p>
     </div>
 
-    <div class="services-container" id="lista-servicos">
+    <div class="container">
+        <div class="input-group">
+            <input type="text" id="nome_cli" placeholder="Seu Nome">
+        </div>
+        <div class="input-group">
+            <input type="tel" id="zap_cli" placeholder="WhatsApp">
         </div>
 
-    <div style="width: 100%; max-width: 450px; margin-top: 30px;">
-        <h3 style="color: var(--accent); font-size: 14px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px;">Mimos & Produtos</h3>
-        <div class="carousel-container" id="lista-produtos">
-            </div>
+        <div class="section-title">Serviços</div>
+        <div id="box-servicos"></div>
+
+        <div class="section-title">Data e Horário</div>
+        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+            <input type="date" id="data_cli">
+            <input type="time" id="hora_cli">
+        </div>
+
+        <div class="section-title">Mimos & Produtos</div>
+        <div class="carousel" id="box-produtos"></div>
+
+        <button class="btn-confirm" onclick="enviar()">CONFIRMAR AGENDAMENTO</button>
     </div>
 
 <script>
     const _supabase = supabase.createClient('https://htraketscvmlaecbvdum.supabase.co', 'sb_publishable_kpTujdxJLja9w0YrfVHqkg_o2VrRgzy');
     const urlParams = new URLSearchParams(window.location.search);
     const SALAO_ID = urlParams.get('salao') || 1;
+    let servicoEscolhido = null;
 
-    async function loadApp() {
-        // Carregar Serviços
-        const { data: svcs } = await _supabase.from('servicos_cadastrados').select('*').eq('admin_id', SALAO_ID);
-        const sCont = document.getElementById('lista-servicos');
-        sCont.innerHTML = "";
-        svcs?.forEach(s => {
-            sCont.innerHTML += `
-                <div class="service-card" onclick="fazerAgendamento('${s.nome}', ${s.preco})">
-                    <div class="service-info">
-                        <h3>${s.nome}</h3>
-                        <p>R$ ${s.preco.toFixed(2)}</p>
-                    </div>
-                    <button class="btn-book">Agendar</button>
-                </div>`;
+    async function carregar() {
+        // Serviços
+        const { data: s } = await _supabase.from('servicos_cadastrados').select('*').eq('admin_id', SALAO_ID);
+        const sDiv = document.getElementById('box-servicos');
+        s?.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'service-card';
+            card.onclick = () => {
+                document.querySelectorAll('.service-card').forEach(c => c.classList.remove('active'));
+                card.classList.add('active');
+                servicoEscolhido = item;
+            };
+            card.innerHTML = `<div class="service-info"><h3>${item.nome}</h3><p>R$ ${item.preco.toFixed(2)}</p></div>`;
+            sDiv.appendChild(card);
         });
 
-        // Carregar Produtos (Carrossel)
-        const { data: prods } = await _supabase.from('produtos_cadastrados').select('*').eq('admin_id', SALAO_ID);
-        const pCont = document.getElementById('lista-produtos');
-        pCont.innerHTML = "";
-        prods?.forEach(p => {
-            pCont.innerHTML += `
-                <div class="product-card">
-                    <img src="${p.imagem_url || 'https://via.placeholder.com/150'}" alt="${p.nome}">
-                    <h4>${p.nome}</h4>
-                    <span>R$ ${p.preco.toFixed(2)}</span>
-                </div>`;
+        // Produtos (Carrossel)
+        const { data: p } = await _supabase.from('produtos_cadastrados').select('*').eq('admin_id', SALAO_ID);
+        const pDiv = document.getElementById('box-produtos');
+        p?.forEach(item => {
+            pDiv.innerHTML += `<div class="product-card">
+                <img src="${item.imagem_url || 'https://via.placeholder.com/150'}">
+                <h4>${item.nome}</h4>
+                <span style="color:var(--accent); font-size:13px;">R$ ${item.preco.toFixed(2)}</span>
+            </div>`;
         });
     }
 
-    async function fazerAgendamento(nomeSvc, precoSvc) {
-        const cliente = prompt("Seu nome para o agendamento:");
-        if(!cliente) return;
+    async function enviar() {
+        const nome = document.getElementById('nome_cli').value;
+        const zap = document.getElementById('zap_cli').value;
+        const data = document.getElementById('data_cli').value;
+        const hora = document.getElementById('hora_cli').value;
 
-        const { error } = await _supabase.from('agendamentos').insert([
-            { nome: cliente, servico: nomeSvc, preco: precoSvc, salao_id: SALAO_ID }
-        ]);
+        if(!nome || !servicoEscolhido || !data || !hora) return alert("Por favor, preencha tudo!");
 
-        if(!error) alert("Agendado com sucesso!");
-        else alert("Erro: " + error.message);
+        const { error } = await _supabase.from('agendamentos').insert([{
+            nome: nome,
+            whatsapp: zap,
+            servico: servicoEscolhido.nome,
+            preco: servicoEscolhido.preco,
+            data_hora: `${data} ${hora}`,
+            salao_id: SALAO_ID
+        }]);
+
+        if(!error) {
+            alert("✅ Agendamento enviado com sucesso!");
+            location.reload();
+        } else {
+            alert("Erro: " + error.message);
+        }
     }
-
-    loadApp();
+    carregar();
 </script>
 </body>
 </html>
