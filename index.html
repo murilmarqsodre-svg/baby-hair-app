@@ -38,6 +38,7 @@ button {
   padding: 8px;
   border-radius: 5px;
   cursor: pointer;
+  margin: 3px;
 }
 
 button.selected {
@@ -59,6 +60,11 @@ button.selected {
   width: 100%;
   border-radius: 10px;
 }
+
+input, select {
+  padding: 8px;
+  width: 100%;
+}
 </style>
 </head>
 
@@ -77,6 +83,11 @@ button.selected {
 <div class="section">
 <h3>Profissionais</h3>
 <div id="professionals"></div>
+</div>
+
+<div class="section">
+<h3>Escolha o dia</h3>
+<input type="date" id="date" onchange="dateSelected()">
 </div>
 
 <div class="section">
@@ -106,7 +117,7 @@ button.selected {
 
 <script>
 
-// 🔹 DADOS (depois você pode puxar do Supabase)
+// 🔹 DADOS
 const services = [
   { id: 1, name: "Corte", price: 30 },
   { id: 2, name: "Luzes", price: 120 },
@@ -128,6 +139,7 @@ const products = [
 // 🔹 ESTADO
 let selectedService = null;
 let selectedProfessional = null;
+let selectedDate = null;
 let selectedTime = null;
 let cart = {};
 
@@ -141,14 +153,16 @@ function loadServices() {
     btn.onclick = () => {
       selectedService = s.id;
       selectedProfessional = null;
+      selectedTime = null;
       loadProfessionals();
+      document.getElementById("times").innerHTML = "";
       highlight(div, btn);
     };
     div.appendChild(btn);
   });
 }
 
-// 🔹 PROFISSIONAIS FILTRADOS
+// 🔹 PROFISSIONAIS
 function loadProfessionals() {
   const div = document.getElementById("professionals");
   div.innerHTML = "";
@@ -162,17 +176,29 @@ function loadProfessionals() {
     btn.innerText = p.name;
     btn.onclick = () => {
       selectedProfessional = p.id;
-      loadTimes();
+      selectedTime = null;
+      document.getElementById("times").innerHTML = "";
       highlight(div, btn);
     };
     div.appendChild(btn);
   });
 }
 
-// 🔹 HORÁRIOS
+// 🔹 DATA SELECIONADA
+function dateSelected() {
+  selectedDate = document.getElementById("date").value;
+  loadTimes();
+}
+
+// 🔹 HORÁRIOS (AGORA DEPENDE DA DATA)
 function loadTimes() {
   const div = document.getElementById("times");
   div.innerHTML = "";
+
+  if (!selectedDate || !selectedProfessional) {
+    div.innerHTML = "<p>Selecione profissional e data</p>";
+    return;
+  }
 
   times.forEach(t => {
     const btn = document.createElement("button");
@@ -215,7 +241,13 @@ function remove(id) {
 
 // 🔹 FINALIZAR
 function finalizar() {
-  alert("Agendamento realizado!");
+
+  if (!selectedService || !selectedProfessional || !selectedDate || !selectedTime) {
+    alert("Preencha todas as etapas!");
+    return;
+  }
+
+  alert(`Agendado para ${selectedDate} às ${selectedTime}`);
 }
 
 // 🔹 AUX
