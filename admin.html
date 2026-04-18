@@ -10,7 +10,6 @@
         :root { --accent: #e19d9d; --bg: #0a0a0a; --card: #161616; --text: #ffffff; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 80px; }
         
-        /* Layout Mobile First */
         .container { padding: 20px; max-width: 1200px; margin: auto; }
         .header { display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid #333; }
         
@@ -20,19 +19,21 @@
         
         .form-box { background: var(--card); padding: 20px; border-radius: 20px; margin-top: 25px; border: 1px solid #222; }
         input { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 10px; border: 1px solid #333; background: #000; color: white; box-sizing: border-box; }
-        .btn-primary { background: var(--accent); color: white; border: none; padding: 15px; border-radius: 10px; font-weight: bold; width: 100%; cursor: pointer; }
+        .btn-primary { background: var(--accent); color: white; border: none; padding: 15px; border-radius: 10px; font-weight: bold; width: 100%; cursor: pointer; transition: 0.3s; }
+        .btn-primary:hover { background: #d08a8a; }
         
-        /* Menu Inferior Estilo App */
         .tab-bar { position: fixed; bottom: 0; width: 100%; background: #111; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #333; }
         .tab-item { color: #666; font-size: 12px; text-align: center; cursor: pointer; }
-        .tab-item.active { color: var(--accent); }
+        .tab-item.active { color: var(--accent); font-weight: bold; }
 
         .hidden { display: none; }
     </style>
 </head>
-<body id="admin-body" class="hidden"> <div class="header">
+<body id="admin-body" class="hidden">
+
+<div class="header">
     <h2 style="color: var(--accent); font-weight: 300;">Baby Admin</h2>
-    <button onclick="copyClientLink()" style="background: #25d366; color: white; border: none; padding: 8px 15px; border-radius: 20px; font-size: 12px;">🔗 Link WhatsApp</button>
+    <button onclick="copyClientLink()" style="background: #25d366; color: white; border: none; padding: 8px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; cursor: pointer;">🔗 Link WhatsApp</button>
 </div>
 
 <div class="container">
@@ -71,13 +72,13 @@
 </div>
 
 <script>
+    // Configurações Supabase do Murilo
     const SUPABASE_URL = 'https://htraketscvmlaecbvdum.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_kpTujdxJLja9w0YrfVHqkg_o2VrRgzy';
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     const MEU_ID = 1;
 
-    // SEGURANÇA SIMPLES (João)
-    // A senha inicial é '1234' - Você pode mudar abaixo
+    // LOGIN DE ACESSO (1234)
     const senhaAcesso = "1234"; 
     const login = prompt("Senha de Acesso ao Painel:");
 
@@ -101,39 +102,53 @@
         const preco = document.getElementById(isSvc ? 'svc-preco' : 'prod-preco').value;
         const extra = isSvc ? {} : { imagem_url: document.getElementById('prod-img').value };
 
-        if(!nome || !preco) return alert("Preencha os campos!");
+        if(!nome || !preco) return alert("Por favor, preencha nome e preço!");
 
         const { error } = await _supabase.from(tabela).insert([
             { nome: nome, preco: parseFloat(preco), admin_id: MEU_ID, ...extra }
         ]);
 
-        if(!error) { alert("Salvo com sucesso!"); location.reload(); }
-        else { alert("Erro: " + error.message); }
+        if(!error) { 
+            alert("Sucesso! O item já está no banco de dados."); 
+            location.reload(); 
+        } else { 
+            alert("Erro ao salvar: " + error.message); 
+        }
     }
 
     function copyClientLink() {
-        // Detecta automaticamente o link do Vercel (Maria)
-        const currentUrl = window.location.href;
-        const cleanUrl = currentUrl.split('/admin.html')[0];
-        const finalLink = `${cleanUrl}/index.html?salao=${MEU_ID}`;
+        // Gera o link baseado na URL atual (Vercel)
+        let cleanUrl = window.location.href.split('/admin.html')[0];
         
+        // Se estiver rodando local, ele avisa, se estiver no vercel ele gera o link certo
+        if(cleanUrl.startsWith('file:///')) {
+            alert("Atenção: Você está rodando o arquivo local. O link final será gerado quando você subir para o Vercel!");
+            return;
+        }
+
+        const finalLink = `${cleanUrl}/index.html?salao=${MEU_ID}`;
         navigator.clipboard.writeText(finalLink);
-        alert("Link para clientes copiado!");
+        alert("Link do seu salão copiado para o WhatsApp!\n" + finalLink);
     }
 
-    // Gráfico (Maria)
+    // Inicialização do Gráfico
     const ctx = document.getElementById('chartMobile').getContext('2d');
     new Chart(ctx, {
         type: 'bar',
         data: {
             labels: ['S', 'T', 'Q', 'Q', 'S', 'S'],
             datasets: [{
-                label: 'Cortes',
-                data: [12, 19, 3, 5, 2, 3],
-                backgroundColor: '#e19d9d'
+                label: 'Cortes da Semana',
+                data: [10, 15, 8, 12, 20, 30],
+                backgroundColor: '#e19d9d',
+                borderRadius: 5
             }]
         },
-        options: { responsive: true, scales: { y: { display: false } } }
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false,
+            scales: { y: { display: false }, x: { grid: { display: false } } } 
+        }
     });
 </script>
 </body>
