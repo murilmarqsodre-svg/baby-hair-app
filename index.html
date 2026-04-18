@@ -1,129 +1,3 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<title>Baby Hair - Agendamento</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<style>
-body {
-  font-family: Arial;
-  background: #fff0f5;
-  margin: 0;
-}
-
-header {
-  background: #ff69b4;
-  color: white;
-  padding: 15px;
-  text-align: center;
-}
-
-.section {
-  padding: 15px;
-}
-
-button {
-  background: #ff69b4;
-  color: white;
-  border: none;
-  padding: 8px;
-  border-radius: 5px;
-  margin: 3px;
-  cursor: pointer;
-}
-
-button.selected {
-  background: #c2185b;
-}
-
-.carousel {
-  display: flex;
-  overflow-x: auto;
-  gap: 10px;
-}
-
-.product {
-  min-width: 140px;
-  text-align: center;
-}
-
-.product img {
-  width: 100%;
-  border-radius: 10px;
-}
-
-.checkout {
-  background: white;
-  padding: 10px;
-  border-radius: 10px;
-}
-
-.total {
-  font-weight: bold;
-  font-size: 18px;
-  color: #c2185b;
-}
-
-input, select {
-  padding: 8px;
-  width: 100%;
-}
-</style>
-</head>
-
-<body>
-
-<header>
-<h2>Baby Hair 💇‍♀️</h2>
-<p>Agende seu horário</p>
-</header>
-
-<div class="section">
-<h3>Serviços</h3>
-<div id="services"></div>
-</div>
-
-<div class="section">
-<h3>Profissionais</h3>
-<div id="professionals"></div>
-</div>
-
-<div class="section">
-<h3>Escolha o dia</h3>
-<input type="date" id="date" onchange="dateSelected()">
-</div>
-
-<div class="section">
-<h3>Horários disponíveis</h3>
-<div id="times"></div>
-</div>
-
-<div class="section">
-<h3>Produtos</h3>
-<div class="carousel" id="products"></div>
-</div>
-
-<div class="section">
-<h3>Resumo do Pedido</h3>
-<div class="checkout" id="checkout"></div>
-</div>
-
-<div class="section">
-<h3>Seus dados</h3>
-<input placeholder="Seu nome" id="name"><br><br>
-<input placeholder="WhatsApp" id="phone"><br><br>
-
-<select id="payment">
-<option>Pix</option>
-<option>Cartão</option>
-<option>Dinheiro</option>
-</select>
-<br><br>
-
-<button onclick="finalizar()">Finalizar Agendamento</button>
-</div>
-
 <script>
 
 // 🔹 DADOS
@@ -138,11 +12,15 @@ const professionals = [
   { id: 2, name: "Ana", services: [1,3] }
 ];
 
-const times = ["09:00", "10:00", "11:00", "14:00", "15:00"];
-
+// 🔹 PRODUTOS (AGORA 7)
 const products = [
   { id: 1, name: "Shampoo", price: 25, img: "https://via.placeholder.com/150" },
-  { id: 2, name: "Óleo Capilar", price: 40, img: "https://via.placeholder.com/150" }
+  { id: 2, name: "Condicionador", price: 28, img: "https://via.placeholder.com/150" },
+  { id: 3, name: "Máscara Capilar", price: 45, img: "https://via.placeholder.com/150" },
+  { id: 4, name: "Óleo Capilar", price: 40, img: "https://via.placeholder.com/150" },
+  { id: 5, name: "Leave-in", price: 35, img: "https://via.placeholder.com/150" },
+  { id: 6, name: "Finalizador", price: 30, img: "https://via.placeholder.com/150" },
+  { id: 7, name: "Ampola de Tratamento", price: 20, img: "https://via.placeholder.com/150" }
 ];
 
 // 🔹 ESTADO
@@ -152,10 +30,39 @@ let selectedDate = null;
 let selectedTime = null;
 let cart = {};
 
+// 🔹 GERAR HORÁRIOS DINÂMICO
+function generateTimes(date) {
+
+  const day = new Date(date).getDay(); // 0 = domingo
+
+  let start = 8;
+  let end = (day === 0) ? 12 : 19;
+
+  let times = [];
+
+  for (let h = start; h <= end; h++) {
+    times.push(`${String(h).padStart(2,'0')}:00`);
+  }
+
+  return times;
+}
+
+// 🔹 LOCAL STORAGE
+function getAppointments() {
+  return JSON.parse(localStorage.getItem("appointments") || "[]");
+}
+
+function saveAppointment(app) {
+  const list = getAppointments();
+  list.push(app);
+  localStorage.setItem("appointments", JSON.stringify(list));
+}
+
 // 🔹 SERVIÇOS
 function loadServices() {
   const div = document.getElementById("services");
   div.innerHTML = "";
+
   services.forEach(s => {
     const btn = document.createElement("button");
     btn.innerText = `${s.name} - R$${s.price}`;
@@ -164,6 +71,7 @@ function loadServices() {
       selectedProfessional = null;
       selectedTime = null;
       loadProfessionals();
+      document.getElementById("times").innerHTML = "";
       updateCheckout();
       highlight(div, btn);
     };
@@ -185,6 +93,8 @@ function loadProfessionals() {
     btn.innerText = p.name;
     btn.onclick = () => {
       selectedProfessional = p.id;
+      selectedTime = null;
+      loadTimes();
       updateCheckout();
       highlight(div, btn);
     };
@@ -199,8 +109,9 @@ function dateSelected() {
   updateCheckout();
 }
 
-// 🔹 HORÁRIOS
+// 🔹 HORÁRIOS COM BLOQUEIO + REGRA DE DIA
 function loadTimes() {
+
   const div = document.getElementById("times");
   div.innerHTML = "";
 
@@ -209,14 +120,31 @@ function loadTimes() {
     return;
   }
 
+  const times = generateTimes(selectedDate);
+  const appointments = getAppointments();
+
   times.forEach(t => {
+
+    const ocupado = appointments.some(a =>
+      a.date === selectedDate &&
+      a.professional === selectedProfessional &&
+      a.time === t
+    );
+
     const btn = document.createElement("button");
     btn.innerText = t;
-    btn.onclick = () => {
-      selectedTime = t;
-      updateCheckout();
-      highlight(div, btn);
-    };
+
+    if (ocupado) {
+      btn.disabled = true;
+      btn.style.background = "#ccc";
+    } else {
+      btn.onclick = () => {
+        selectedTime = t;
+        updateCheckout();
+        highlight(div, btn);
+      };
+    }
+
     div.appendChild(btn);
   });
 }
@@ -224,6 +152,7 @@ function loadTimes() {
 // 🔹 PRODUTOS
 function loadProducts() {
   const div = document.getElementById("products");
+  div.innerHTML = "";
 
   products.forEach(p => {
     const card = document.createElement("div");
@@ -289,7 +218,7 @@ function updateCheckout() {
 
   html += `<hr>`;
   html += `<p>Produtos: R$${productTotal}</p>`;
-  html += `<p class="total">Total: R$${total}</p>`;
+  html += `<p style="font-weight:bold;color:#c2185b">Total: R$${total}</p>`;
 
   document.getElementById("checkout").innerHTML = html;
 }
@@ -302,7 +231,15 @@ function finalizar() {
     return;
   }
 
-  alert("Agendamento concluído!");
+  saveAppointment({
+    service: selectedService,
+    professional: selectedProfessional,
+    date: selectedDate,
+    time: selectedTime
+  });
+
+  alert("Agendamento confirmado!");
+  location.reload();
 }
 
 // 🔹 AUX
@@ -316,6 +253,3 @@ loadServices();
 loadProducts();
 
 </script>
-
-</body>
-</html>
