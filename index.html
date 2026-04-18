@@ -7,76 +7,63 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --accent: #e19d9d; --bg: #0a0a0a; --card: #161616; --text: #ffffff; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); padding: 20px; text-align: center; }
-        .service-card { background: var(--card); border: 1px solid #222; padding: 15px; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-        .btn-agendar { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; }
-        .header { margin-bottom: 30px; }
-        .header h1 { color: var(--accent); font-weight: 300; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); padding: 20px; margin: 0; }
+        .header { text-align: center; padding: 40px 0; }
+        .header h1 { color: var(--accent); font-weight: 300; letter-spacing: 2px; }
+        .service-list { max-width: 500px; margin: auto; }
+        .service-card { background: var(--card); border: 1px solid #222; padding: 20px; border-radius: 15px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; transition: 0.3s; }
+        .service-info strong { display: block; font-size: 18px; margin-bottom: 4px; }
+        .service-info span { color: var(--accent); font-size: 16px; }
+        .btn-agendar { background: var(--accent); color: white; border: none; padding: 12px 20px; border-radius: 10px; cursor: pointer; font-weight: bold; }
+        .btn-agendar:active { transform: scale(0.95); }
     </style>
 </head>
 <body>
-
-<div class="header">
-    <h1>Baby Hair</h1>
-    <p>Escolha seu serviço e agende agora</p>
-</div>
-
-<div id="lista-servicos">Carregando serviços...</div>
+    <div class="header">
+        <h1>Baby Hair</h1>
+        <p style="color: #888;">Escolha seu serviço e agende agora</p>
+    </div>
+    <div id="servicos-container" class="service-list">Carregando serviços...</div>
 
 <script>
     const SUPABASE_URL = 'https://htraketscvmlaecbvdum.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_kpTujdxJLja9w0YrfVHqkg_o2VrRgzy';
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     
-    // Captura o salão ID da URL (ex: ?salao=1)
     const urlParams = new URLSearchParams(window.location.search);
     const SALAO_ID = urlParams.get('salao') || 1;
 
     async function carregarServicos() {
-        const { data, error } = await _supabase
-            .from('servicos_cadastrados')
-            .select('*')
-            .eq('admin_id', SALAO_ID);
-
-        const container = document.getElementById('lista-servicos');
+        const { data } = await _supabase.from('servicos_cadastrados').select('*').eq('admin_id', SALAO_ID);
+        const container = document.getElementById('servicos-container');
         container.innerHTML = "";
-
         if(data && data.length > 0) {
-            data.forEach(servico => {
+            data.forEach(s => {
                 container.innerHTML += `
                     <div class="service-card">
-                        <div style="text-align: left;">
-                            <strong>${servico.nome}</strong><br>
-                            <span style="color: var(--accent);">R$ ${servico.preco.toFixed(2)}</span>
+                        <div class="service-info">
+                            <strong>${s.nome}</strong>
+                            <span>R$ ${parseFloat(s.preco).toFixed(2)}</span>
                         </div>
-                        <button class="btn-agendar" onclick="fazerAgendamento('${servico.nome}', ${servico.preco})">Agendar</button>
-                    </div>
-                `;
+                        <button class="btn-agendar" onclick="agendar('${s.nome}', ${s.preco})">Agendar</button>
+                    </div>`;
             });
         } else {
-            container.innerHTML = "Nenhum serviço disponível no momento.";
+            container.innerHTML = "<p style='text-align:center; color:#666;'>Nenhum serviço disponível.</p>";
         }
     }
 
-    async function fazerAgendamento(nome, preco) {
-        const cliente = prompt("Qual o seu nome?");
-        if(!cliente) return;
+    async function agendar(servico, valor) {
+        const nome = prompt("Para confirmar, digite seu nome:");
+        if(!nome) return;
 
-        const { error } = await _supabase
-            .from('agendamentos')
-            .insert([{
-                admin_id: SALAO_ID,
-                cliente_nome: cliente,
-                servico_nome: nome,
-                preco_total: preco,
-                data_hora: new Date().toISOString()
-            }]);
+        // CORREÇÃO: Usando 'salao_id' para evitar o erro do 'admin_id' que não existia na tabela de agendamentos
+        const { error } = await _supabase.from('agendamentos').insert([
+            { nome: nome, servico: servico, preco: valor, salao_id: SALAO_ID }
+        ]);
 
-        if(!error) {
-            alert("Agendamento realizado com sucesso para " + cliente + "!");
-        } else {
-            alert("Erro ao agendar: " + error.message);
-        }
+        if(!error) alert("Perfeito, " + nome + "! Seu agendamento foi realizado.");
+        else alert("Erro ao agendar: " + error.message);
     }
 
     carregarServicos();
