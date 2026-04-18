@@ -23,22 +23,14 @@ header {
   padding: 15px;
 }
 
-.card {
-  background: white;
-  border-radius: 10px;
-  padding: 10px;
-  margin-bottom: 10px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
-
 button {
   background: #ff69b4;
   color: white;
   border: none;
   padding: 8px;
   border-radius: 5px;
-  cursor: pointer;
   margin: 3px;
+  cursor: pointer;
 }
 
 button.selected {
@@ -59,6 +51,18 @@ button.selected {
 .product img {
   width: 100%;
   border-radius: 10px;
+}
+
+.checkout {
+  background: white;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.total {
+  font-weight: bold;
+  font-size: 18px;
+  color: #c2185b;
 }
 
 input, select {
@@ -98,6 +102,11 @@ input, select {
 <div class="section">
 <h3>Produtos</h3>
 <div class="carousel" id="products"></div>
+</div>
+
+<div class="section">
+<h3>Resumo do Pedido</h3>
+<div class="checkout" id="checkout"></div>
 </div>
 
 <div class="section">
@@ -155,7 +164,7 @@ function loadServices() {
       selectedProfessional = null;
       selectedTime = null;
       loadProfessionals();
-      document.getElementById("times").innerHTML = "";
+      updateCheckout();
       highlight(div, btn);
     };
     div.appendChild(btn);
@@ -176,21 +185,21 @@ function loadProfessionals() {
     btn.innerText = p.name;
     btn.onclick = () => {
       selectedProfessional = p.id;
-      selectedTime = null;
-      document.getElementById("times").innerHTML = "";
+      updateCheckout();
       highlight(div, btn);
     };
     div.appendChild(btn);
   });
 }
 
-// 🔹 DATA SELECIONADA
+// 🔹 DATA
 function dateSelected() {
   selectedDate = document.getElementById("date").value;
   loadTimes();
+  updateCheckout();
 }
 
-// 🔹 HORÁRIOS (AGORA DEPENDE DA DATA)
+// 🔹 HORÁRIOS
 function loadTimes() {
   const div = document.getElementById("times");
   div.innerHTML = "";
@@ -205,6 +214,7 @@ function loadTimes() {
     btn.innerText = t;
     btn.onclick = () => {
       selectedTime = t;
+      updateCheckout();
       highlight(div, btn);
     };
     div.appendChild(btn);
@@ -233,10 +243,55 @@ function loadProducts() {
 
 function add(id) {
   cart[id] = (cart[id] || 0) + 1;
+  updateCheckout();
 }
 
 function remove(id) {
   if(cart[id]) cart[id]--;
+  updateCheckout();
+}
+
+// 🔹 CHECKOUT
+function updateCheckout() {
+
+  let html = "";
+  let total = 0;
+
+  const service = services.find(s => s.id === selectedService);
+  const professional = professionals.find(p => p.id === selectedProfessional);
+
+  if (service) {
+    html += `<p>Serviço: ${service.name} - R$${service.price}</p>`;
+    total += service.price;
+  }
+
+  if (professional) {
+    html += `<p>Profissional: ${professional.name}</p>`;
+  }
+
+  if (selectedDate && selectedTime) {
+    html += `<p>Data: ${selectedDate} às ${selectedTime}</p>`;
+  }
+
+  let productTotal = 0;
+
+  for (let id in cart) {
+    if (cart[id] > 0) {
+      const p = products.find(prod => prod.id == id);
+      const subtotal = p.price * cart[id];
+      productTotal += subtotal;
+
+      html += `<p>${p.name} x${cart[id]} - R$${subtotal}</p>`;
+    }
+  }
+
+  total += productTotal;
+
+  html += `<hr>`;
+  html += `<p>Produtos: R$${productTotal}</p>`;
+  html += `<p class="total">Total: R$${total}</p>`;
+
+  document.getElementById("checkout").innerHTML = html;
 }
 
 // 🔹 FINALIZAR
@@ -247,7 +302,7 @@ function finalizar() {
     return;
   }
 
-  alert(`Agendado para ${selectedDate} às ${selectedTime}`);
+  alert("Agendamento concluído!");
 }
 
 // 🔹 AUX
