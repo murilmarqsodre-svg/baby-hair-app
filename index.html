@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baby Hair Pro - Sistema de Agendamento</title>
+    <title>Baby Hair Pro - Agendamento & Shop</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --accent: #e19d9d; --dark: #1f1f1f; --card: #2d2d2d; --text: #f5f5f5; --bg: #121212; }
@@ -12,29 +12,33 @@
         h1 { text-align: center; color: var(--accent); letter-spacing: 2px; font-weight: 300; margin-bottom: 25px; }
         .section-title { font-size: 12px; color: var(--accent); margin-top: 20px; margin-bottom: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
         
-        /* Seleção de Profissionais */
+        /* Profissionais */
         .list-horizontal { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none; }
         .item-card { min-width: 100px; background: #383838; padding: 15px 10px; border-radius: 15px; text-align: center; cursor: pointer; border: 2px solid transparent; opacity: 0.3; pointer-events: none; transition: 0.4s; }
         .item-card.enabled { opacity: 1; pointer-events: auto; }
         .item-card.selected { border-color: var(--accent); background: #454545; }
         
         /* Grid de Horários */
-        .horarios-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; }
+        .horarios-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
         .hora-item { background: #383838; padding: 10px; border-radius: 10px; text-align: center; font-size: 13px; cursor: pointer; border: 1px solid #444; }
-        .hora-item.selected { background: var(--accent); color: var(--bg); font-weight: bold; border-color: var(--accent); }
+        .hora-item.selected { background: var(--accent); color: var(--bg); font-weight: bold; }
 
-        /* Produtos */
-        .product-card { min-width: 140px; background: #333; padding: 12px; border-radius: 12px; border: 1px solid #444; text-align: center; }
-        .btn-add-prod { background: transparent; border: 1px solid var(--accent); color: var(--accent); padding: 5px 10px; border-radius: 15px; cursor: pointer; font-size: 11px; margin-top: 8px; }
-        
+        /* Vitrine de Produtos */
+        .product-item { min-width: 150px; background: #333; border-radius: 15px; overflow: hidden; border: 1px solid #444; text-align: center; transition: 0.3s; }
+        .product-img { width: 100%; height: 100px; object-fit: cover; background: #444; }
+        .product-info { padding: 10px; }
+        .product-info span { font-size: 13px; display: block; margin-bottom: 5px; }
+        .btn-add-prod { background: transparent; border: 1px solid var(--accent); color: var(--accent); padding: 5px 15px; border-radius: 20px; cursor: pointer; font-size: 11px; }
+        .btn-add-prod.active { background: var(--accent); color: white; }
+
         input, select { width: 100%; padding: 14px; margin-top: 5px; border-radius: 12px; border: 1px solid #444; background: #181818; color: white; box-sizing: border-box; outline: none; }
         
-        /* Checkout e Tags */
-        .checkout-box { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 15px; margin-top: 20px; border: 1px solid var(--accent); font-size: 14px; line-height: 1.6; }
+        /* Resumo e Tags */
+        .checkout-box { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 15px; margin-top: 20px; border: 1px solid var(--accent); font-size: 14px; }
         .tag-prod { background: #444; color: var(--accent); padding: 4px 10px; border-radius: 12px; font-size: 11px; display: inline-flex; align-items: center; gap: 8px; margin: 2px; }
         .remove-x { color: #ff8b94; cursor: pointer; font-weight: bold; }
         
-        .btn-confirm { width: 100%; padding: 18px; background: var(--accent); color: white; border: none; border-radius: 15px; font-weight: bold; margin-top: 20px; cursor: pointer; }
+        .btn-confirm { width: 100%; padding: 18px; background: var(--accent); color: white; border: none; border-radius: 15px; font-weight: bold; margin-top: 20px; cursor: pointer; font-size: 16px; }
     </style>
 </head>
 <body>
@@ -42,9 +46,9 @@
 <div class="container">
     <h1>Baby Hair</h1>
 
-    <div class="section-title">1. Serviço</div>
+    <div class="section-title">1. Escolha o Serviço</div>
     <select id="servico" onchange="filterPros()">
-        <option value="0">O que deseja fazer?</option>
+        <option value="0">Selecione o procedimento...</option>
         <option value="80">Escova & Hidratação - R$ 80,00</option>
         <option value="150">Corte & Coloração - R$ 150,00</option>
         <option value="50">Manicure - R$ 50,00</option>
@@ -57,33 +61,45 @@
         <div class="item-card" onclick="selectPro(this, 'Ana Beatriz')"><p>Ana Beatriz</p></div>
     </div>
 
-    <div class="section-title">3. Data e Hora</div>
+    <div class="section-title">3. Data e Horário</div>
     <input type="date" id="data_agendamento" onchange="checkAvailability()">
-    <div class="horarios-grid" id="grid-horarios"></div>
+    <div class="horarios-grid" id="grid-horarios" style="margin-top:10px"></div>
 
-    <div class="section-title">4. Adicionar Mimos</div>
+    <div class="section-title">4. Mimos e Produtos</div>
     <div class="list-horizontal">
-        <div class="product-card">
-            <span>Máscara Repair</span><br>
-            <b style="color:var(--accent)">R$ 45,00</b><br>
-            <button class="btn-add-prod" onclick="addProduct('Máscara Repair', 45)">+ Adicionar</button>
+        <div class="product-item">
+            <img src="https://images.unsplash.com/photo-1535585209827-a15fcdbc4c2d?w=200" class="product-img" alt="Shampoo">
+            <div class="product-info">
+                <span>Shampoo Nutritivo</span>
+                <b style="color:var(--accent)">R$ 55,00</b><br>
+                <button class="btn-add-prod" onclick="addProduct('Shampoo Nutritivo', 55)">Adicionar</button>
+            </div>
         </div>
-        <div class="product-card">
-            <span>Sérum Finalizador</span><br>
-            <b style="color:var(--accent)">R$ 32,00</b><br>
-            <button class="btn-add-prod" onclick="addProduct('Sérum Finalizador', 32)">+ Adicionar</button>
+        <div class="product-item">
+            <img src="https://images.unsplash.com/photo-1526947425960-945c6e72858f?w=200" class="product-img" alt="Mascara">
+            <div class="product-info">
+                <span>Máscara Repair</span>
+                <b style="color:var(--accent)">R$ 85,00</b><br>
+                <button class="btn-add-prod" onclick="addProduct('Máscara Repair', 85)">Adicionar</button>
+            </div>
+        </div>
+        <div class="product-item">
+            <img src="https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=200" class="product-img" alt="Oleo">
+            <div class="product-info">
+                <span>Óleo Finalizador</span>
+                <b style="color:var(--accent)">R$ 42,00</b><br>
+                <button class="btn-add-prod" onclick="addProduct('Óleo Finalizador', 42)">Adicionar</button>
+            </div>
         </div>
     </div>
 
-    <div class="section-title">5. Seus Dados</div>
-    <input type="text" id="cliente_nome" placeholder="Seu nome completo">
+    <div class="section-title">5. Identificação</div>
+    <input type="text" id="cliente_nome" placeholder="Seu nome">
     <input type="text" id="contato" placeholder="WhatsApp (73) 99999-9999">
 
-    <div class="checkout-box" id="resumo">
-        Selecione as opções acima...
-    </div>
+    <div class="checkout-box" id="resumo">Aguardando escolhas...</div>
 
-    <button onclick="salvar()" id="btn-confirm" class="btn-confirm">Confirmar Agendamento</button>
+    <button onclick="salvar()" id="btn-confirm" class="btn-confirm">Finalizar Agendamento</button>
 </div>
 
 <script>
@@ -169,7 +185,7 @@
         document.getElementById('resumo').innerHTML = `
             <b>Profissional:</b> ${proSelecionada || '---'}<br>
             <b>Data/Hora:</b> ${data ? data.split('-').reverse().join('/') : '---'} às ${horaSelecionada || '---'}<br>
-            <b>Mimos:</b> ${htmlProd || 'Nenhum'}<br>
+            <b>Itens:</b> ${htmlProd || 'Nenhum'}<br>
             <b style="color:var(--accent); font-size:16px">Total: R$ ${(servPreco + totalProd).toFixed(2)}</b>
         `;
     }
@@ -177,14 +193,14 @@
     async function salvar() {
         const nome = document.getElementById('cliente_nome').value;
         const data = document.getElementById('data_agendamento').value;
-        const totalTxt = document.getElementById('resumo').innerText.split('Total: ')[1];
-
+        const resumoElement = document.getElementById('resumo');
+        
         if (!nome || !proSelecionada || !horaSelecionada || !data) {
             alert("Preencha todos os campos!"); return;
         }
 
         const btn = document.getElementById('btn-confirm');
-        btn.innerText = "Agendando..."; btn.disabled = true;
+        btn.innerText = "Finalizando..."; btn.disabled = true;
 
         const { error } = await _supabase.from('lista_agendamentos').insert([{ 
             cliente_nome: nome, 
@@ -194,16 +210,15 @@
             data_agendamento: data, 
             horario_agendamento: horaSelecionada,
             produtos: produtosSelecionados.map(p => p.nome).join(", "),
-            valor_total: totalTxt
+            valor_total: resumoElement.innerText.split('Total: ')[1]
         }]);
 
         if (!error) {
-            alert("Agendado com sucesso!");
-            window.open(`https://wa.me/5573982139332?text=Olá! Agendei no Baby Hair: ${nome} para o dia ${data} às ${horaSelecionada}`, '_blank');
+            alert("Perfeito! Seu agendamento foi salvo.");
             location.reload();
         } else {
-            alert("Erro no Supabase: " + error.message);
-            btn.innerText = "Confirmar Agendamento"; btn.disabled = false;
+            alert("Erro ao salvar: " + error.message);
+            btn.innerText = "Finalizar Agendamento"; btn.disabled = false;
         }
     }
 </script>
