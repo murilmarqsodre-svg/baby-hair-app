@@ -1,116 +1,234 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baby Hair - Agendamento</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        :root { --accent: #e19d9d; --bg: #0a0a0a; --card: #161616; --text: #ffffff; }
-        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        .header { text-align: center; margin-bottom: 30px; }
-        .header h1 { font-weight: 300; letter-spacing: 4px; color: var(--accent); text-transform: uppercase; margin: 0; }
-        .container { width: 100%; max-width: 450px; }
-        .input-group { margin-bottom: 12px; }
-        input, select { width: 100%; padding: 15px; border-radius: 15px; border: 1px solid #222; background: #000; color: #fff; box-sizing: border-box; font-size: 16px; outline: none; }
-        .section-title { color: var(--accent); font-size: 11px; text-transform: uppercase; letter-spacing: 2px; margin: 25px 0 12px; border-bottom: 1px solid #222; padding-bottom: 5px; }
-        .service-card { background: var(--card); border: 1px solid #222; border-radius: 20px; padding: 18px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-        .service-card.active { border-color: var(--accent); background: #1f1f1f; }
-        .carousel { display: flex; overflow-x: auto; gap: 15px; padding: 10px 5px 20px; scrollbar-width: none; width: 100%; }
-        .carousel::-webkit-scrollbar { display: none; }
-        .product-card { min-width: 150px; background: var(--card); border-radius: 20px; padding: 12px; border: 1px solid #222; text-align: center; }
-        .product-card img { width: 100%; height: 120px; border-radius: 15px; object-fit: cover; margin-bottom: 8px; }
-        .btn-confirm { background: var(--accent); color: white; border: none; padding: 20px; border-radius: 18px; width: 100%; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 20px; }
-    </style>
+<meta charset="UTF-8">
+<title>Baby Hair - Agendamento</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+  font-family: Arial;
+  background: #fff0f5;
+  margin: 0;
+}
+
+header {
+  background: #ff69b4;
+  color: white;
+  padding: 15px;
+  text-align: center;
+}
+
+.section {
+  padding: 15px;
+}
+
+.card {
+  background: white;
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+button {
+  background: #ff69b4;
+  color: white;
+  border: none;
+  padding: 8px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button.selected {
+  background: #c2185b;
+}
+
+.carousel {
+  display: flex;
+  overflow-x: auto;
+  gap: 10px;
+}
+
+.product {
+  min-width: 140px;
+  text-align: center;
+}
+
+.product img {
+  width: 100%;
+  border-radius: 10px;
+}
+</style>
 </head>
+
 <body>
-    <div class="header"><h1>BABY HAIR</h1><p>Agendamento Premium</p></div>
-    <div class="container">
-        <input type="text" id="nome_cli" placeholder="Seu Nome" style="margin-bottom:10px">
-        <input type="tel" id="zap_cli" placeholder="WhatsApp">
 
-        <div class="section-title">Serviço</div>
-        <div id="lista-servicos"></div>
+<header>
+<h2>Baby Hair 💇‍♀️</h2>
+<p>Agende seu horário</p>
+</header>
 
-        <div class="section-title">Profissional</div>
-        <select id="select-prof">
-            <option value="">Selecione o serviço primeiro</option>
-        </select>
+<div class="section">
+<h3>Serviços</h3>
+<div id="services"></div>
+</div>
 
-        <div class="section-title">Data e Horário</div>
-        <div style="display: flex; gap: 10px;">
-            <input type="date" id="data_agend">
-            <select id="hora_agend"><option value="">Selecione a data</option></select>
-        </div>
+<div class="section">
+<h3>Profissionais</h3>
+<div id="professionals"></div>
+</div>
 
-        <div class="section-title">Mimos & Produtos</div>
-        <div class="carousel" id="lista-produtos"></div>
+<div class="section">
+<h3>Horários disponíveis</h3>
+<div id="times"></div>
+</div>
 
-        <button class="btn-confirm" onclick="finalizar()">CONFIRMAR AGENDAMENTO</button>
-    </div>
+<div class="section">
+<h3>Produtos</h3>
+<div class="carousel" id="products"></div>
+</div>
+
+<div class="section">
+<h3>Seus dados</h3>
+<input placeholder="Seu nome" id="name"><br><br>
+<input placeholder="WhatsApp" id="phone"><br><br>
+
+<select id="payment">
+<option>Pix</option>
+<option>Cartão</option>
+<option>Dinheiro</option>
+</select>
+<br><br>
+
+<button onclick="finalizar()">Finalizar Agendamento</button>
+</div>
 
 <script>
-    const _supabase = supabase.createClient('https://htraketscvmlaecbvdum.supabase.co', 'sb_publishable_kpTujdxJLja9w0YrfVHqkg_o2VrRgzy');
-    const urlParams = new URLSearchParams(window.location.search);
-    const SALAO_ID = urlParams.get('salao') || 1;
-    let svcSel = null;
 
-    async function init() {
-        const { data: svcs } = await _supabase.from('servicos_cadastrados').select('*').eq('admin_id', SALAO_ID);
-        const sDiv = document.getElementById('lista-servicos');
-        svcs?.forEach(s => {
-            const div = document.createElement('div');
-            div.className = 'service-card';
-            div.onclick = () => {
-                document.querySelectorAll('.service-card').forEach(c => c.classList.remove('active'));
-                div.classList.add('active');
-                svcSel = s;
-                atualizarProfissionais(s.nome);
-            };
-            div.innerHTML = `<div><strong>${s.nome}</strong><br><span style="color:var(--accent)">R$ ${s.preco.toFixed(2)}</span></div>`;
-            sDiv.appendChild(div);
-        });
+// 🔹 DADOS (depois você pode puxar do Supabase)
+const services = [
+  { id: 1, name: "Corte", price: 30 },
+  { id: 2, name: "Luzes", price: 120 },
+  { id: 3, name: "Hidratação", price: 50 }
+];
 
-        const { data: prods } = await _supabase.from('produtos_cadastrados').select('*').eq('admin_id', SALAO_ID);
-        const pDiv = document.getElementById('lista-produtos');
-        prods?.forEach(p => {
-            pDiv.innerHTML += `<div class="product-card"><img src="${p.imagem_url || 'https://via.placeholder.com/150'}"><h4>${p.nome}</h4><span>R$ ${p.preco.toFixed(2)}</span></div>`;
-        });
-    }
+const professionals = [
+  { id: 1, name: "Carla", services: [2,3] },
+  { id: 2, name: "Ana", services: [1,3] }
+];
 
-    async function atualizarProfissionais(servicoNome) {
-        const { data } = await _supabase.from('profissionais_servicos').select('profissional_nome').eq('servico_nome', servicoNome).eq('salao_id', SALAO_ID);
-        const sel = document.getElementById('select-prof');
-        sel.innerHTML = '<option value="">Escolha o profissional</option>';
-        data?.forEach(p => sel.innerHTML += `<option value="${p.profissional_nome}">${p.profissional_nome}</option>`);
-    }
+const times = ["09:00", "10:00", "11:00", "14:00", "15:00"];
 
-    document.getElementById('data_agend').onchange = async (e) => {
-        const prof = document.getElementById('select-prof').value;
-        const { data: ocupados } = await _supabase.from('agendamentos').select('data_hora').eq('profissional', prof).filter('data_hora', 'gte', e.target.value + ' 00:00').filter('data_hora', 'lte', e.target.value + ' 23:59');
-        const horasOcupadas = ocupados.map(o => o.data_hora.split(' ')[1].substring(0,5));
-        const selHora = document.getElementById('hora_agend');
-        selHora.innerHTML = '';
-        ['08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'].forEach(h => {
-            if(!horasOcupadas.includes(h)) selHora.innerHTML += `<option value="${h}">${h}</option>`;
-        });
+const products = [
+  { id: 1, name: "Shampoo", price: 25, img: "https://via.placeholder.com/150" },
+  { id: 2, name: "Óleo Capilar", price: 40, img: "https://via.placeholder.com/150" }
+];
+
+// 🔹 ESTADO
+let selectedService = null;
+let selectedProfessional = null;
+let selectedTime = null;
+let cart = {};
+
+// 🔹 SERVIÇOS
+function loadServices() {
+  const div = document.getElementById("services");
+  div.innerHTML = "";
+  services.forEach(s => {
+    const btn = document.createElement("button");
+    btn.innerText = `${s.name} - R$${s.price}`;
+    btn.onclick = () => {
+      selectedService = s.id;
+      selectedProfessional = null;
+      loadProfessionals();
+      highlight(div, btn);
     };
+    div.appendChild(btn);
+  });
+}
 
-    async function finalizar() {
-        const nome = document.getElementById('nome_cli').value;
-        const zap = document.getElementById('zap_cli').value;
-        const prof = document.getElementById('select-prof').value;
-        const data = document.getElementById('data_agend').value;
-        const hora = document.getElementById('hora_agend').value;
-        if(!nome || !svcSel || !prof || !data || !hora) return alert("Preencha todos os campos!");
+// 🔹 PROFISSIONAIS FILTRADOS
+function loadProfessionals() {
+  const div = document.getElementById("professionals");
+  div.innerHTML = "";
 
-        const { error } = await _supabase.from('agendamentos').insert([{
-            nome, whatsapp: zap, servico: svcSel.nome, preco: svcSel.preco, profissional: prof, data_hora: `${data} ${hora}`, salao_id: SALAO_ID
-        }]);
-        if(!error) { alert("Agendado com sucesso!"); location.reload(); }
-        else alert("Erro: " + error.message);
-    }
-    init();
+  const filtered = professionals.filter(p =>
+    p.services.includes(selectedService)
+  );
+
+  filtered.forEach(p => {
+    const btn = document.createElement("button");
+    btn.innerText = p.name;
+    btn.onclick = () => {
+      selectedProfessional = p.id;
+      loadTimes();
+      highlight(div, btn);
+    };
+    div.appendChild(btn);
+  });
+}
+
+// 🔹 HORÁRIOS
+function loadTimes() {
+  const div = document.getElementById("times");
+  div.innerHTML = "";
+
+  times.forEach(t => {
+    const btn = document.createElement("button");
+    btn.innerText = t;
+    btn.onclick = () => {
+      selectedTime = t;
+      highlight(div, btn);
+    };
+    div.appendChild(btn);
+  });
+}
+
+// 🔹 PRODUTOS
+function loadProducts() {
+  const div = document.getElementById("products");
+
+  products.forEach(p => {
+    const card = document.createElement("div");
+    card.className = "product";
+
+    card.innerHTML = `
+      <img src="${p.img}">
+      <p>${p.name}</p>
+      <p>R$${p.price}</p>
+      <button onclick="add(${p.id})">+</button>
+      <button onclick="remove(${p.id})">-</button>
+    `;
+
+    div.appendChild(card);
+  });
+}
+
+function add(id) {
+  cart[id] = (cart[id] || 0) + 1;
+}
+
+function remove(id) {
+  if(cart[id]) cart[id]--;
+}
+
+// 🔹 FINALIZAR
+function finalizar() {
+  alert("Agendamento realizado!");
+}
+
+// 🔹 AUX
+function highlight(parent, btn) {
+  Array.from(parent.children).forEach(b => b.classList.remove("selected"));
+  btn.classList.add("selected");
+}
+
+// INIT
+loadServices();
+loadProducts();
+
 </script>
+
 </body>
 </html>
