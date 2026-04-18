@@ -3,106 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Baby Hair - Admin Oficial</title>
+    <title>Baby Admin - Oficial</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root { --accent: #e19d9d; --bg: #0a0a0a; --card: #161616; --text: #ffffff; }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 90px; overflow-x: hidden; }
-        .header { display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid #222; background: var(--bg); position: sticky; top: 0; z-index: 100; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 90px; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid #222; }
         .container { padding: 15px; max-width: 600px; margin: auto; }
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .stat-card { background: var(--card); padding: 18px; border-radius: 15px; border: 1px solid #222; text-align: center; }
-        .stat-card h3 { color: var(--accent); margin: 0; font-size: 20px; }
-        .form-box { background: var(--card); padding: 20px; border-radius: 20px; margin-top: 20px; border: 1px solid #222; }
-        input { width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 10px; border: 1px solid #333; background: #000; color: white; box-sizing: border-box; font-size: 16px; }
+        .stat-card h3 { color: var(--accent); margin: 0; }
         .btn-primary { background: var(--accent); color: white; border: none; padding: 16px; border-radius: 12px; font-weight: bold; width: 100%; cursor: pointer; }
         .tab-bar { position: fixed; bottom: 0; width: 100%; background: #111; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #222; }
-        .tab-item { color: #666; font-size: 11px; text-align: center; cursor: pointer; flex: 1; }
-        .tab-item.active { color: var(--accent); font-weight: bold; }
         .hidden { display: none; }
     </style>
 </head>
 <body id="admin-body" class="hidden">
 <div class="header">
     <h2 style="color: var(--accent); font-weight: 300; margin: 0;">Baby Admin</h2>
-    <button onclick="copyClientLink()" style="background: #25d366; color: white; border: none; padding: 8px 14px; border-radius: 20px; font-size: 11px; font-weight: bold;">🔗 LINK CLIENTE</button>
+    <button onclick="copyClientLink()" style="background: #25d366; color: white; border: none; padding: 8px 14px; border-radius: 20px; font-weight: bold;">🔗 COPIAR LINK</button>
 </div>
 <div class="container">
     <div id="section-dash" class="content-section">
         <div id="stats-container" class="stats-grid">
-            <div class="stat-card"><h3>R$ 0,00</h3><p>Ganhos Hoje</p></div>
-            <div class="stat-card"><h3>0</h3><p>Agendamentos</p></div>
+            <div class="stat-card"><h3 id="ganhos">R$ 0,00</h3><p>Ganhos</p></div>
+            <div class="stat-card"><h3 id="agenda-count">0</h3><p>Agenda</p></div>
         </div>
-        <div style="margin-top: 20px; background: #161616; border-radius: 20px; padding: 15px; border: 1px solid #222;">
-            <canvas id="chartMobile" height="200"></canvas>
-        </div>
+        <canvas id="chartMobile" height="200" style="margin-top:20px;"></canvas>
     </div>
     <div id="section-manage" class="content-section hidden">
-        <div class="form-box">
+        <div style="background: var(--card); padding: 20px; border-radius: 20px; border: 1px solid #222;">
             <h3>+ Novo Serviço</h3>
-            <input type="text" id="svc-nome" placeholder="Nome do Serviço">
-            <input type="number" id="svc-preco" placeholder="Preço R$">
-            <button class="btn-primary" onclick="saveData('servicos_cadastrados')">Salvar Serviço</button>
+            <input type="text" id="svc-nome" placeholder="Nome" style="width:100%; padding:12px; margin-bottom:10px; background:#000; border:1px solid #333; color:#fff;">
+            <input type="number" id="svc-preco" placeholder="Preço" style="width:100%; padding:12px; margin-bottom:10px; background:#000; border:1px solid #333; color:#fff;">
+            <button class="btn-primary" onclick="saveData()">Salvar</button>
         </div>
     </div>
 </div>
 <div class="tab-bar">
-    <div class="tab-item active" onclick="switchTab('dash')">📊<br>Início</div>
-    <div class="tab-item" onclick="switchTab('manage')">🛠️<br>Cadastros</div>
-    <div class="tab-item" onclick="location.reload()">🔄<br>Atualizar</div>
+    <div onclick="switchTab('dash')">📊<br>Início</div>
+    <div onclick="switchTab('manage')">🛠️<br>Serviços</div>
 </div>
 <script>
-    const SUPABASE_URL = 'https://htraketscvmlaecbvdum.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_kpTujdxJLja9w0YrfVHqkg_o2VrRgzy';
-    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const _supabase = supabase.createClient('https://htraketscvmlaecbvdum.supabase.co', 'sb_publishable_kpTujdxJLja9w0YrfVHqkg_o2VrRgzy');
     const MEU_ID = 1;
+    if(prompt("Senha:") === "1234") { document.getElementById('admin-body').classList.remove('hidden'); atualizarPainel(); }
+    else { window.location.href = "index.html"; }
 
-    const senhaAcesso = "1234"; 
-    const login = prompt("Senha Administrativa:");
-    if(login === senhaAcesso) {
-        document.getElementById('admin-body').classList.remove('hidden');
-        atualizarPainel();
-    } else {
-        alert("Acesso negado.");
-        window.location.href = "index.html";
-    }
-
-    function switchTab(target) {
+    function switchTab(t) { 
         document.querySelectorAll('.content-section').forEach(s => s.classList.add('hidden'));
-        document.getElementById('section-' + target).classList.remove('hidden');
-        document.querySelectorAll('.tab-item').forEach(i => i.classList.remove('active'));
-        event.currentTarget.classList.add('active');
+        document.getElementById('section-' + t).classList.remove('hidden');
     }
 
     async function atualizarPainel() {
-        // Busca agendamentos feitos para o Murilo
         const { data } = await _supabase.from('agendamentos').select('*').eq('salao_id', MEU_ID);
         if(data) {
-            const total = data.reduce((sum, item) => sum + (parseFloat(item.preco) || 0), 0);
-            document.getElementById('stats-container').innerHTML = `
-                <div class="stat-card"><h3>R$ ${total.toFixed(2)}</h3><p>Ganhos Totais</p></div>
-                <div class="stat-card"><h3>${data.length}</h3><p>Agendamentos</p></div>
-            `;
+            const total = data.reduce((sum, i) => sum + (parseFloat(i.preco) || 0), 0);
+            document.getElementById('ganhos').innerText = `R$ ${total.toFixed(2)}`;
+            document.getElementById('agenda-count').innerText = data.length;
         }
     }
 
-    async function saveData(tabela) {
+    async function saveData() {
         const nome = document.getElementById('svc-nome').value;
         const preco = document.getElementById('svc-preco').value;
-        if(!nome || !preco) return alert("Preencha tudo!");
-        const { error } = await _supabase.from(tabela).insert([{ nome, preco: parseFloat(preco), admin_id: MEU_ID }]);
-        if(!error) { alert("Cadastrado!"); location.reload(); }
-        else alert("Erro: " + error.message);
+        await _supabase.from('servicos_cadastrados').insert([{ nome, preco: parseFloat(preco), admin_id: MEU_ID }]);
+        location.reload();
     }
 
     function copyClientLink() {
-        const finalLink = `${window.location.origin}/index.html?salao=${MEU_ID}`;
-        navigator.clipboard.writeText(finalLink).then(() => alert("✅ LINK COPIADO!"));
+        const link = "https://baby-hair-app.vercel.app/index.html?salao=1";
+        navigator.clipboard.writeText(link).then(() => alert("✅ Link Copiado!"));
     }
-
-    const ctx = document.getElementById('chartMobile').getContext('2d');
-    new Chart(ctx, { type: 'line', data: { labels: ['S', 'T', 'Q', 'Q', 'S', 'S'], datasets: [{ data: [5, 12, 8, 20, 15, 25], borderColor: '#e19d9d', tension: 0.4 }] }, options: { plugins: { legend: { display: false } } } });
 </script>
 </body>
 </html>
