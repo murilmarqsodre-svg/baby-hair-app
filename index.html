@@ -27,16 +27,25 @@ button {
   background: #ff69b4;
   color: white;
   border: none;
-  padding: 8px;
-  border-radius: 5px;
-  margin: 3px;
+  padding: 10px;
+  border-radius: 6px;
+  margin: 4px;
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
+/* 🔥 efeito hover */
+button:hover {
+  transform: scale(1.05);
+}
+
+/* 🔥 botão selecionado */
 button.selected {
   background: #c2185b;
+  transform: scale(1.05);
 }
 
+/* 🔥 botão desabilitado */
 button:disabled {
   background: #ccc;
   cursor: not-allowed;
@@ -154,7 +163,13 @@ let selectedDate = null;
 let selectedTime = null;
 let cart = {};
 
-// 🔹 HORÁRIOS DINÂMICOS
+// 🔹 AUX SELEÇÃO VISUAL
+function selectButton(parent, clickedBtn) {
+  Array.from(parent.children).forEach(btn => btn.classList.remove("selected"));
+  clickedBtn.classList.add("selected");
+}
+
+// 🔹 HORÁRIOS
 function generateTimes(date) {
   const day = new Date(date).getDay();
   let end = (day === 0) ? 12 : 19;
@@ -181,6 +196,7 @@ function saveAppointment(app) {
 // 🔹 SERVIÇOS
 function loadServices() {
   const div = document.getElementById("services");
+
   services.forEach(s => {
     const btn = document.createElement("button");
     btn.innerText = `${s.name} - R$${s.price}`;
@@ -191,6 +207,7 @@ function loadServices() {
       document.getElementById("times").innerHTML = "";
       loadProfessionals();
       updateCheckout();
+      selectButton(div, btn);
     };
     div.appendChild(btn);
   });
@@ -210,6 +227,7 @@ function loadProfessionals() {
         selectedProfessional = p.id;
         loadTimes();
         updateCheckout();
+        selectButton(div, btn);
       };
       div.appendChild(btn);
     });
@@ -249,6 +267,7 @@ function loadTimes() {
       btn.onclick = () => {
         selectedTime = t;
         updateCheckout();
+        selectButton(div, btn);
       };
     }
 
