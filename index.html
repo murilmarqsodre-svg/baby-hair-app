@@ -6,23 +6,27 @@
     <title>Baby Hair App</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f4f4; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .container { background: white; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 320px; padding: 25px; }
-        h1 { text-align: center; color: #333; margin-bottom: 20px; }
-        label { display: block; margin-top: 10px; color: #666; font-size: 14px; }
-        input, select, button { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; font-size: 16px; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f4f4; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .container { background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 320px; padding: 25px; }
+        h1 { text-align: center; color: #333; margin-bottom: 20px; font-size: 24px; }
+        label { display: block; margin-top: 12px; color: #555; font-size: 14px; font-weight: bold; }
+        input, select, button { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; font-size: 16px; }
         button { background-color: #28a745; color: white; border: none; cursor: pointer; margin-top: 25px; font-weight: bold; transition: 0.3s; }
         button:hover { background-color: #218838; }
-        #mensagem { text-align: center; margin-top: 15px; font-weight: bold; }
+        #mensagem { text-align: center; margin-top: 15px; font-weight: bold; font-size: 14px; }
     </style>
 </head>
 <body>
+
     <div class="container">
         <h1>Baby Hair App</h1>
+
         <label>Seu Nome</label>
-        <input type="text" id="cliente_nome" placeholder="Ex: Murilo">
+        <input type="text" id="cliente_nome" placeholder="Digite seu nome">
+
         <label>WhatsApp</label>
         <input type="text" id="contato" placeholder="(73) 99999-9999">
+
         <label>Escolha o Serviço</label>
         <select id="servico">
             <option value="">Selecione...</option>
@@ -30,46 +34,62 @@
             <option value="Corte + Barba">Corte + Barba - R$ 50,00</option>
             <option value="Pezinho">Pezinho - R$ 15,00</option>
         </select>
+
         <button onclick="salvar()" id="btn">Confirmar Agendamento</button>
         <p id="mensagem"></p>
     </div>
 
     <script>
-        const SUPABASE_URL = 'https://oivvshvlyvzkfclzpxgx.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pdnZzaHZseXZ6a2ZjbHpweGd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTI2NjM5NDMsImV4cCI6MjAyODI0Mzk0M30.4M3NfX08_5pM8J3Y5P9vX0a8Y2e4';
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // URL E KEY ATUALIZADAS CONFORME SEUS PRINTS
+        const SUPABASE_URL = 'https://htraketscvmlaecbvdum.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_kpTujdxJLja9w0YrfVHqkg_o2VrRgzy';
+        
+        const { createClient } = supabase;
+        const _supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
         async function salvar() {
             const btn = document.getElementById('btn');
             const msg = document.getElementById('mensagem');
+            
             const nome = document.getElementById('cliente_nome').value;
             const zap = document.getElementById('contato').value;
             const serv = document.getElementById('servico').value;
 
             if (!nome || !serv) {
-                alert("Preencha seu nome e escolha um serviço!");
+                alert("Por favor, preencha o nome e escolha o serviço!");
                 return;
             }
 
             btn.disabled = true;
             btn.innerText = "Enviando...";
 
-            const { error } = await _supabase
-                .from('lista_agendamentos')
-                .insert([{ cliente_nome: nome, contato: zap, servico: serv }]);
+            try {
+                const { error } = await _supabase
+                    .from('lista_agendamentos')
+                    .insert([{ 
+                        cliente_nome: nome, 
+                        contato: zap, 
+                        servico: serv 
+                    }]);
 
-            if (error) {
-                msg.innerText = "Erro: " + error.message;
-                msg.style.color = "red";
-            } else {
-                msg.innerText = "✅ Agendamento realizado!";
+                if (error) throw error;
+
+                msg.innerText = "✅ Agendamento realizado com sucesso!";
                 msg.style.color = "green";
+                
+                // Limpa os campos após o sucesso
                 document.getElementById('cliente_nome').value = "";
                 document.getElementById('contato').value = "";
                 document.getElementById('servico').value = "";
+
+            } catch (err) {
+                console.error("Erro detalhado:", err);
+                msg.innerText = "Erro ao salvar: " + err.message;
+                msg.style.color = "red";
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Confirmar Agendamento";
             }
-            btn.disabled = false;
-            btn.innerText = "Confirmar Agendamento";
         }
     </script>
 </body>
