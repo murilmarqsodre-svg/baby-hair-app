@@ -3,39 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baby Hair Pro - Clean Agenda</title>
+    <title>Baby Hair Pro - Sistema de Agendamento</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --accent: #e19d9d; --dark: #1f1f1f; --card: #2d2d2d; --text: #f5f5f5; --bg: #121212; }
         body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); color: var(--text); display: flex; justify-content: center; padding: 20px; margin: 0; }
         .container { background: var(--card); border-radius: 20px; width: 100%; max-width: 400px; padding: 25px; border: 1px solid #3d3d3d; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         h1 { text-align: center; color: var(--accent); letter-spacing: 2px; font-weight: 300; margin-bottom: 25px; }
-        
         .section-title { font-size: 12px; color: var(--accent); margin-top: 20px; margin-bottom: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
         
-        /* Seleção de Itens */
+        /* Seleção de Profissionais */
         .list-horizontal { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none; }
         .item-card { min-width: 100px; background: #383838; padding: 15px 10px; border-radius: 15px; text-align: center; cursor: pointer; border: 2px solid transparent; opacity: 0.3; pointer-events: none; transition: 0.4s; }
         .item-card.enabled { opacity: 1; pointer-events: auto; }
-        .item-card.selected { border-color: var(--accent); background: #454545; box-shadow: 0 0 10px rgba(225, 157, 157, 0.2); }
-        .item-card p { margin: 0; font-size: 13px; font-weight: 500; line-height: 1.2; }
-
+        .item-card.selected { border-color: var(--accent); background: #454545; }
+        
         /* Grid de Horários */
         .horarios-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; }
-        .hora-item { background: #383838; padding: 10px; border-radius: 10px; text-align: center; font-size: 13px; cursor: pointer; border: 1px solid #444; transition: 0.2s; }
-        .hora-item:hover { border-color: var(--accent); }
+        .hora-item { background: #383838; padding: 10px; border-radius: 10px; text-align: center; font-size: 13px; cursor: pointer; border: 1px solid #444; }
         .hora-item.selected { background: var(--accent); color: var(--bg); font-weight: bold; border-color: var(--accent); }
 
-        input, select { width: 100%; padding: 14px; margin-top: 5px; border-radius: 12px; border: 1px solid #444; background: #181818; color: white; box-sizing: border-box; outline: none; }
-        input:focus { border-color: var(--accent); }
-
-        .checkout-box { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 15px; margin-top: 20px; border: 1px solid var(--accent); font-size: 14px; line-height: 1.6; }
+        /* Produtos */
+        .product-card { min-width: 140px; background: #333; padding: 12px; border-radius: 12px; border: 1px solid #444; text-align: center; }
+        .btn-add-prod { background: transparent; border: 1px solid var(--accent); color: var(--accent); padding: 5px 10px; border-radius: 15px; cursor: pointer; font-size: 11px; margin-top: 8px; }
         
-        .btn-confirm { width: 100%; padding: 18px; background: var(--accent); color: white; border: none; border-radius: 15px; font-weight: bold; font-size: 16px; margin-top: 20px; cursor: pointer; transition: 0.3s; }
-        .btn-confirm:disabled { background: #444; cursor: not-allowed; }
-
-        #modal-sucesso { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); align-items:center; justify-content:center; z-index: 1000; }
-        .modal-body { background: var(--card); padding: 30px; border-radius: 20px; text-align: center; border: 1px solid var(--accent); max-width: 320px; }
+        input, select { width: 100%; padding: 14px; margin-top: 5px; border-radius: 12px; border: 1px solid #444; background: #181818; color: white; box-sizing: border-box; outline: none; }
+        
+        /* Checkout e Tags */
+        .checkout-box { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 15px; margin-top: 20px; border: 1px solid var(--accent); font-size: 14px; line-height: 1.6; }
+        .tag-prod { background: #444; color: var(--accent); padding: 4px 10px; border-radius: 12px; font-size: 11px; display: inline-flex; align-items: center; gap: 8px; margin: 2px; }
+        .remove-x { color: #ff8b94; cursor: pointer; font-weight: bold; }
+        
+        .btn-confirm { width: 100%; padding: 18px; background: var(--accent); color: white; border: none; border-radius: 15px; font-weight: bold; margin-top: 20px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -43,9 +42,9 @@
 <div class="container">
     <h1>Baby Hair</h1>
 
-    <div class="section-title">1. Procedimento</div>
+    <div class="section-title">1. Serviço</div>
     <select id="servico" onchange="filterPros()">
-        <option value="0">O que vamos fazer hoje?</option>
+        <option value="0">O que deseja fazer?</option>
         <option value="80">Escova & Hidratação - R$ 80,00</option>
         <option value="150">Corte & Coloração - R$ 150,00</option>
         <option value="50">Manicure - R$ 50,00</option>
@@ -53,32 +52,38 @@
 
     <div class="section-title">2. Profissional</div>
     <div class="list-horizontal" id="lista-pros">
-        <div class="item-card" id="pro-Carla" onclick="selectPro(this, 'Carla Mendes')"><p>Carla Mendes<br><small style="opacity:0.7">Cabelos</small></p></div>
-        <div class="item-card" id="pro-Juliana" onclick="selectPro(this, 'Juliana Souza')"><p>Juliana Souza<br><small style="opacity:0.7">Unhas</small></p></div>
-        <div class="item-card" id="pro-Ana" onclick="selectPro(this, 'Ana Beatriz')"><p>Ana Beatriz<br><small style="opacity:0.7">Completo</small></p></div>
+        <div class="item-card" onclick="selectPro(this, 'Carla Mendes')"><p>Carla Mendes</p></div>
+        <div class="item-card" onclick="selectPro(this, 'Juliana Souza')"><p>Juliana Souza</p></div>
+        <div class="item-card" onclick="selectPro(this, 'Ana Beatriz')"><p>Ana Beatriz</p></div>
     </div>
 
-    <div class="section-title">3. Data e Horários Disponíveis</div>
+    <div class="section-title">3. Data e Hora</div>
     <input type="date" id="data_agendamento" onchange="checkAvailability()">
     <div class="horarios-grid" id="grid-horarios"></div>
 
-    <div class="section-title">4. Identificação</div>
+    <div class="section-title">4. Adicionar Mimos</div>
+    <div class="list-horizontal">
+        <div class="product-card">
+            <span>Máscara Repair</span><br>
+            <b style="color:var(--accent)">R$ 45,00</b><br>
+            <button class="btn-add-prod" onclick="addProduct('Máscara Repair', 45)">+ Adicionar</button>
+        </div>
+        <div class="product-card">
+            <span>Sérum Finalizador</span><br>
+            <b style="color:var(--accent)">R$ 32,00</b><br>
+            <button class="btn-add-prod" onclick="addProduct('Sérum Finalizador', 32)">+ Adicionar</button>
+        </div>
+    </div>
+
+    <div class="section-title">5. Seus Dados</div>
     <input type="text" id="cliente_nome" placeholder="Seu nome completo">
     <input type="text" id="contato" placeholder="WhatsApp (73) 99999-9999">
 
     <div class="checkout-box" id="resumo">
-        Aguardando escolhas...
+        Selecione as opções acima...
     </div>
 
     <button onclick="salvar()" id="btn-confirm" class="btn-confirm">Confirmar Agendamento</button>
-</div>
-
-<div id="modal-sucesso">
-    <div class="modal-body">
-        <h2 style="color:var(--accent)">✨ Sucesso!</h2>
-        <p>Seu horário foi reservado.</p>
-        <button style="background:#25d366; color:white; border:none; padding:15px; width:100%; border-radius:12px; font-weight:bold; cursor:pointer;" onclick="enviarZap()">Enviar para WhatsApp</button>
-    </div>
 </div>
 
 <script>
@@ -88,7 +93,8 @@
 
     let proSelecionada = "";
     let horaSelecionada = "";
-    
+    let produtosSelecionados = [];
+
     const especialidades = {
         "Escova & Hidratação - R$ 80,00": ["Carla Mendes", "Ana Beatriz"],
         "Corte & Coloração - R$ 150,00": ["Carla Mendes", "Ana Beatriz"],
@@ -96,45 +102,44 @@
     };
 
     function filterPros() {
-        const servico = document.getElementById('servico').options[document.getElementById('servico').selectedIndex].text;
-        const habilitadas = especialidades[servico] || [];
-        
+        const servTxt = document.getElementById('servico').options[document.getElementById('servico').selectedIndex].text;
+        const habilitadas = especialidades[servTxt] || [];
         document.querySelectorAll('.item-card').forEach(card => {
             card.classList.remove('enabled', 'selected');
-            const nomeCard = card.querySelector('p').childNodes[0].textContent.trim();
-            if (habilitadas.includes(nomeCard)) card.classList.add('enabled');
+            if (habilitadas.includes(card.innerText.trim())) card.classList.add('enabled');
         });
-        proSelecionada = "";
-        horaSelecionada = "";
-        checkAvailability();
+        proSelecionada = ""; horaSelecionada = ""; checkAvailability();
     }
 
     function selectPro(el, nome) {
         document.querySelectorAll('.item-card').forEach(c => c.classList.remove('selected'));
         el.classList.add('selected');
-        proSelecionada = nome;
-        horaSelecionada = "";
-        checkAvailability();
+        proSelecionada = nome; checkAvailability();
+    }
+
+    function addProduct(nome, preco) {
+        produtosSelecionados.push({ id: Date.now(), nome, preco });
+        updateResumo();
+    }
+
+    function removeProduct(id) {
+        produtosSelecionados = produtosSelecionados.filter(p => p.id !== id);
+        updateResumo();
     }
 
     async function checkAvailability() {
         const data = document.getElementById('data_agendamento').value;
         const grid = document.getElementById('grid-horarios');
         grid.innerHTML = "";
-        
         if (!data || !proSelecionada) return;
 
-        const { data: ocupados } = await _supabase
-            .from('lista_agendamentos')
-            .select('horario_agendamento')
-            .eq('data_agendamento', data)
-            .eq('barbeiro', proSelecionada);
+        const { data: ocupados } = await _supabase.from('lista_agendamentos')
+            .select('horario_agendamento').eq('data_agendamento', data).eq('barbeiro', proSelecionada);
 
         const listaOcupados = ocupados ? ocupados.map(o => o.horario_agendamento) : [];
-        const horariosPadrao = ["08:00", "09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00", "17:00"];
+        const hPadrao = ["08:00", "09:00", "10:00", "11:00", "14:00", "15:00", "16:00", "17:00"];
 
-        horariosPadrao.forEach(h => {
-            // MARIA: Aqui está a mágica. Se estiver ocupado, nem criamos o botão!
+        hPadrao.forEach(h => {
             if (!listaOcupados.includes(h)) {
                 const div = document.createElement('div');
                 div.className = 'hora-item';
@@ -142,8 +147,7 @@
                 div.onclick = () => {
                     document.querySelectorAll('.hora-item').forEach(i => i.classList.remove('selected'));
                     div.classList.add('selected');
-                    horaSelecionada = h;
-                    updateResumo();
+                    horaSelecionada = h; updateResumo();
                 };
                 grid.appendChild(div);
             }
@@ -152,54 +156,55 @@
     }
 
     function updateResumo() {
-        const servico = document.getElementById('servico').options[document.getElementById('servico').selectedIndex].text;
+        const servSelect = document.getElementById('servico');
+        const servPreco = parseFloat(servSelect.value) || 0;
+        const totalProd = produtosSelecionados.reduce((acc, p) => acc + p.preco, 0);
         const data = document.getElementById('data_agendamento').value;
         
+        let htmlProd = "";
+        produtosSelecionados.forEach(p => {
+            htmlProd += `<span class="tag-prod">${p.nome} <span class="remove-x" onclick="removeProduct(${p.id})">✕</span></span>`;
+        });
+
         document.getElementById('resumo').innerHTML = `
             <b>Profissional:</b> ${proSelecionada || '---'}<br>
-            <b>Serviço:</b> ${servico !== 'O que vamos fazer hoje?' ? servico : '---'}<br>
-            <b>Data/Hora:</b> ${data ? data.split('-').reverse().join('/') : '---'} às ${horaSelecionada || '---'}
+            <b>Data/Hora:</b> ${data ? data.split('-').reverse().join('/') : '---'} às ${horaSelecionada || '---'}<br>
+            <b>Mimos:</b> ${htmlProd || 'Nenhum'}<br>
+            <b style="color:var(--accent); font-size:16px">Total: R$ ${(servPreco + totalProd).toFixed(2)}</b>
         `;
     }
 
     async function salvar() {
         const nome = document.getElementById('cliente_nome').value;
         const data = document.getElementById('data_agendamento').value;
-        const zap = document.getElementById('contato').value;
-        
+        const totalTxt = document.getElementById('resumo').innerText.split('Total: ')[1];
+
         if (!nome || !proSelecionada || !horaSelecionada || !data) {
-            alert("Por favor, preencha todos os campos antes de confirmar!");
-            return;
+            alert("Preencha todos os campos!"); return;
         }
 
         const btn = document.getElementById('btn-confirm');
-        btn.disabled = true;
-        btn.innerText = "Agendando...";
+        btn.innerText = "Agendando..."; btn.disabled = true;
 
         const { error } = await _supabase.from('lista_agendamentos').insert([{ 
             cliente_nome: nome, 
-            contato: zap,
+            contato: document.getElementById('contato').value,
             servico: document.getElementById('servico').options[document.getElementById('servico').selectedIndex].text,
             barbeiro: proSelecionada, 
             data_agendamento: data, 
             horario_agendamento: horaSelecionada,
-            valor_total: "Consultar"
+            produtos: produtosSelecionados.map(p => p.nome).join(", "),
+            valor_total: totalTxt
         }]);
 
         if (!error) {
-            document.getElementById('modal-sucesso').style.display = 'flex';
+            alert("Agendado com sucesso!");
+            window.open(`https://wa.me/5573982139332?text=Olá! Agendei no Baby Hair: ${nome} para o dia ${data} às ${horaSelecionada}`, '_blank');
+            location.reload();
         } else {
-            alert("Erro ao agendar: " + error.message);
-            btn.disabled = false;
-            btn.innerText = "Confirmar Agendamento";
+            alert("Erro no Supabase: " + error.message);
+            btn.innerText = "Confirmar Agendamento"; btn.disabled = false;
         }
-    }
-
-    function enviarZap() {
-        const nome = document.getElementById('cliente_nome').value;
-        const data = document.getElementById('data_agendamento').value.split('-').reverse().join('/');
-        const msg = `Olá! Fiz um agendamento no Baby Hair:%0A%0A🌸 *Cliente:* ${nome}%0A📅 *Data:* ${data}%0A⏰ *Hora:* ${horaSelecionada}%0A💇‍♀️ *Profissional:* ${proSelecionada}`;
-        window.open(`https://wa.me/5573982139332?text=${msg}`, '_blank');
     }
 </script>
 </body>
