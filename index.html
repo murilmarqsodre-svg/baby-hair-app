@@ -3,27 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baby Hair - Agendamento</title>
+    <title>Baby Hair - Agendamento Oficial</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
+        /* RESTAURADO: Seu Layout Original Impecável */
         :root { --accent: #e19d9d; --bg: #0a0a0a; --card: #161616; --text: #ffffff; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); padding: 20px; margin: 0; }
-        .header { text-align: center; padding: 40px 0; }
-        .header h1 { color: var(--accent); font-weight: 300; letter-spacing: 2px; }
-        .service-list { max-width: 500px; margin: auto; }
-        .service-card { background: var(--card); border: 1px solid #222; padding: 20px; border-radius: 15px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; transition: 0.3s; }
-        .service-info strong { display: block; font-size: 18px; margin-bottom: 4px; }
-        .service-info span { color: var(--accent); font-size: 16px; }
-        .btn-agendar { background: var(--accent); color: white; border: none; padding: 12px 20px; border-radius: 10px; cursor: pointer; font-weight: bold; }
-        .btn-agendar:active { transform: scale(0.95); }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        
+        .header { text-align: center; margin-bottom: 40px; margin-top: 20px; }
+        .header h1 { font-weight: 300; letter-spacing: 4px; color: var(--accent); text-transform: uppercase; margin: 0; }
+        .header p { color: #666; font-size: 14px; margin-top: 5px; }
+
+        .services-container { width: 100%; max-width: 450px; }
+        
+        .service-card { 
+            background: var(--card); 
+            border: 1px solid #222; 
+            border-radius: 20px; 
+            padding: 20px; 
+            margin-bottom: 15px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .service-card:active { transform: scale(0.98); background: #1f1f1f; }
+        
+        .service-info { text-align: left; }
+        .service-info h3 { margin: 0; font-size: 18px; font-weight: 500; color: #eee; }
+        .service-info p { margin: 5px 0 0; color: var(--accent); font-weight: bold; font-size: 16px; }
+
+        .btn-book { 
+            background-color: var(--accent); 
+            color: white; 
+            border: none; 
+            padding: 12px 20px; 
+            border-radius: 12px; 
+            font-weight: bold; 
+            font-size: 14px;
+            box-shadow: 0 4px 15px rgba(225, 157, 157, 0.2);
+        }
     </style>
 </head>
 <body>
+
     <div class="header">
-        <h1>Baby Hair</h1>
-        <p style="color: #888;">Escolha seu serviço e agende agora</p>
+        <h1>BABY HAIR</h1>
+        <p>Agendamento Exclusivo</p>
     </div>
-    <div id="servicos-container" class="service-list">Carregando serviços...</div>
+
+    <div class="services-container" id="servicos-lista">
+        <p style="text-align: center; color: #444;">Sincronizando com o salão...</p>
+    </div>
 
 <script>
     const SUPABASE_URL = 'https://htraketscvmlaecbvdum.supabase.co';
@@ -33,19 +65,24 @@
     const urlParams = new URLSearchParams(window.location.search);
     const SALAO_ID = urlParams.get('salao') || 1;
 
-    async function carregarServicos() {
-        const { data } = await _supabase.from('servicos_cadastrados').select('*').eq('admin_id', SALAO_ID);
-        const container = document.getElementById('servicos-container');
+    async function carregarServicosDoBanco() {
+        const { data, error } = await _supabase
+            .from('servicos_cadastrados')
+            .select('*')
+            .eq('admin_id', SALAO_ID);
+
+        const container = document.getElementById('servicos-lista');
         container.innerHTML = "";
+
         if(data && data.length > 0) {
             data.forEach(s => {
                 container.innerHTML += `
-                    <div class="service-card">
+                    <div class="service-card" onclick="processarAgendamento('${s.nome}', ${s.preco})">
                         <div class="service-info">
-                            <strong>${s.nome}</strong>
-                            <span>R$ ${parseFloat(s.preco).toFixed(2)}</span>
+                            <h3>${s.nome}</h3>
+                            <p>R$ ${parseFloat(s.preco).toFixed(2)}</p>
                         </div>
-                        <button class="btn-agendar" onclick="agendar('${s.nome}', ${s.preco})">Agendar</button>
+                        <button class="btn-book">Agendar</button>
                     </div>`;
             });
         } else {
@@ -53,20 +90,29 @@
         }
     }
 
-    async function agendar(servico, valor) {
-        const nome = prompt("Para confirmar, digite seu nome:");
-        if(!nome) return;
+    async function processarAgendamento(servicoNome, servicoPreco) {
+        const nomeCliente = prompt("Para confirmar o agendamento, digite seu nome:");
+        if(!nomeCliente) return;
 
-        // CORREÇÃO: Usando 'salao_id' para evitar o erro do 'admin_id' que não existia na tabela de agendamentos
+        // JOÃO: Ajustei para salvar exatamente o que o banco espera (salao_id)
         const { error } = await _supabase.from('agendamentos').insert([
-            { nome: nome, servico: servico, preco: valor, salao_id: SALAO_ID }
+            { 
+                nome: nomeCliente, 
+                servico: servicoNome, 
+                preco: servicoPreco, 
+                salao_id: SALAO_ID 
+            }
         ]);
 
-        if(!error) alert("Perfeito, " + nome + "! Seu agendamento foi realizado.");
-        else alert("Erro ao agendar: " + error.message);
+        if(!error) {
+            alert("Sucesso, " + nomeCliente + "! Seu agendamento de " + servicoNome + " foi enviado ao Murilo.");
+        } else {
+            console.error(error);
+            alert("Erro técnico: " + error.message);
+        }
     }
 
-    carregarServicos();
+    carregarServicosDoBanco();
 </script>
 </body>
 </html>
