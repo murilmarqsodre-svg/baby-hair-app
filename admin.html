@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Baby Hair - Admin Realtime</title>
+    <title>Baby Hair - Admin Oficial</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root { --accent: #e19d9d; --bg: #0a0a0a; --card: #161616; --text: #ffffff; }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 90px; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 90px; overflow-x: hidden; }
         .header { display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid #222; background: var(--bg); position: sticky; top: 0; z-index: 100; }
         .container { padding: 15px; max-width: 600px; margin: auto; }
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
@@ -24,23 +24,20 @@
     </style>
 </head>
 <body id="admin-body" class="hidden">
-
 <div class="header">
     <h2 style="color: var(--accent); font-weight: 300; margin: 0;">Baby Admin</h2>
     <button onclick="copyClientLink()" style="background: #25d366; color: white; border: none; padding: 8px 14px; border-radius: 20px; font-size: 11px; font-weight: bold;">🔗 LINK CLIENTE</button>
 </div>
-
 <div class="container">
     <div id="section-dash" class="content-section">
         <div id="stats-container" class="stats-grid">
-            <div class="stat-card"><h3>R$ 0,00</h3><p>Carregando...</p></div>
-            <div class="stat-card"><h3>0</h3><p>Carregando...</p></div>
+            <div class="stat-card"><h3>R$ 0,00</h3><p>Ganhos Hoje</p></div>
+            <div class="stat-card"><h3>0</h3><p>Agendamentos</p></div>
         </div>
         <div style="margin-top: 20px; background: #161616; border-radius: 20px; padding: 15px; border: 1px solid #222;">
             <canvas id="chartMobile" height="200"></canvas>
         </div>
     </div>
-
     <div id="section-manage" class="content-section hidden">
         <div class="form-box">
             <h3>+ Novo Serviço</h3>
@@ -48,22 +45,13 @@
             <input type="number" id="svc-preco" placeholder="Preço R$">
             <button class="btn-primary" onclick="saveData('servicos_cadastrados')">Salvar Serviço</button>
         </div>
-        <div class="form-box">
-            <h3>+ Novo Mimo</h3>
-            <input type="text" id="prod-nome" placeholder="Nome do Produto">
-            <input type="number" id="prod-preco" placeholder="Preço R$">
-            <input type="text" id="prod-img" placeholder="Link da Foto">
-            <button class="btn-primary" onclick="saveData('produtos_cadastrados')">Salvar Produto</button>
-        </div>
     </div>
 </div>
-
 <div class="tab-bar">
     <div class="tab-item active" onclick="switchTab('dash')">📊<br>Início</div>
     <div class="tab-item" onclick="switchTab('manage')">🛠️<br>Cadastros</div>
     <div class="tab-item" onclick="location.reload()">🔄<br>Atualizar</div>
 </div>
-
 <script>
     const SUPABASE_URL = 'https://htraketscvmlaecbvdum.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_kpTujdxJLja9w0YrfVHqkg_o2VrRgzy';
@@ -72,10 +60,9 @@
 
     const senhaAcesso = "1234"; 
     const login = prompt("Senha Administrativa:");
-
     if(login === senhaAcesso) {
         document.getElementById('admin-body').classList.remove('hidden');
-        atualizarDashboard();
+        atualizarPainel();
     } else {
         alert("Acesso negado.");
         window.location.href = "index.html";
@@ -88,55 +75,34 @@
         event.currentTarget.classList.add('active');
     }
 
-    async function atualizarDashboard() {
-        const hoje = new Date().toISOString().split('T')[0];
-        
-        // Busca agendamentos do dia para o Murilo (ID 1)
-        const { data: agendamentos } = await _supabase
-            .from('agendamentos')
-            .select('preco_total')
-            .eq('admin_id', MEU_ID)
-            .gte('data_hora', hoje);
-
-        let totalGanhos = 0;
-        let totalServicos = 0;
-
-        if(agendamentos) {
-            totalServicos = agendamentos.length;
-            totalGanhos = agendamentos.reduce((sum, item) => sum + (parseFloat(item.preco_total) || 0), 0);
+    async function atualizarPainel() {
+        // Busca agendamentos feitos para o Murilo
+        const { data } = await _supabase.from('agendamentos').select('*').eq('salao_id', MEU_ID);
+        if(data) {
+            const total = data.reduce((sum, item) => sum + (parseFloat(item.preco) || 0), 0);
+            document.getElementById('stats-container').innerHTML = `
+                <div class="stat-card"><h3>R$ ${total.toFixed(2)}</h3><p>Ganhos Totais</p></div>
+                <div class="stat-card"><h3>${data.length}</h3><p>Agendamentos</p></div>
+            `;
         }
-
-        document.getElementById('stats-container').innerHTML = `
-            <div class="stat-card"><h3>R$ ${totalGanhos.toFixed(2)}</h3><p>Ganhos Hoje</p></div>
-            <div class="stat-card"><h3>${totalServicos}</h3><p>Agendamentos</p></div>
-        `;
     }
 
     async function saveData(tabela) {
-        const isSvc = tabela === 'servicos_cadastrados';
-        const nome = document.getElementById(isSvc ? 'svc-nome' : 'prod-nome').value;
-        const preco = document.getElementById(isSvc ? 'svc-preco' : 'prod-preco').value;
-        const extra = isSvc ? {} : { imagem_url: document.getElementById('prod-img').value };
-
+        const nome = document.getElementById('svc-nome').value;
+        const preco = document.getElementById('svc-preco').value;
         if(!nome || !preco) return alert("Preencha tudo!");
-
-        const { error } = await _supabase.from(tabela).insert([
-            { nome: nome, preco: parseFloat(preco), admin_id: MEU_ID, ...extra }
-        ]);
-
+        const { error } = await _supabase.from(tabela).insert([{ nome, preco: parseFloat(preco), admin_id: MEU_ID }]);
         if(!error) { alert("Cadastrado!"); location.reload(); }
-        else { alert("Erro: " + error.message); }
+        else alert("Erro: " + error.message);
     }
 
     function copyClientLink() {
-        let urlBase = window.location.origin;
-        if(urlBase.startsWith('file')) return alert("Abra pelo link do Vercel!");
-        const finalLink = `${urlBase}/index.html?salao=${MEU_ID}`;
+        const finalLink = `${window.location.origin}/index.html?salao=${MEU_ID}`;
         navigator.clipboard.writeText(finalLink).then(() => alert("✅ LINK COPIADO!"));
     }
 
     const ctx = document.getElementById('chartMobile').getContext('2d');
-    new Chart(ctx, { type: 'line', data: { labels: ['S', 'T', 'Q', 'Q', 'S', 'S'], datasets: [{ data: [10, 25, 15, 30, 20, 45], borderColor: '#e19d9d', tension: 0.4 }] }, options: { plugins: { legend: { display: false } } } });
+    new Chart(ctx, { type: 'line', data: { labels: ['S', 'T', 'Q', 'Q', 'S', 'S'], datasets: [{ data: [5, 12, 8, 20, 15, 25], borderColor: '#e19d9d', tension: 0.4 }] }, options: { plugins: { legend: { display: false } } } });
 </script>
 </body>
 </html>
