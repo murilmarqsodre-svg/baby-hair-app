@@ -1,86 +1,173 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Baby Admin - Oficial</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        :root { --accent: #e19d9d; --bg: #0a0a0a; --card: #161616; --text: #ffffff; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 90px; }
-        .header { display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid #222; }
-        .container { padding: 15px; max-width: 600px; margin: auto; }
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .stat-card { background: var(--card); padding: 18px; border-radius: 15px; border: 1px solid #222; text-align: center; }
-        .stat-card h3 { color: var(--accent); margin: 0; }
-        .btn-primary { background: var(--accent); color: white; border: none; padding: 16px; border-radius: 12px; font-weight: bold; width: 100%; cursor: pointer; }
-        .tab-bar { position: fixed; bottom: 0; width: 100%; background: #111; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #222; }
-        .hidden { display: none; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Baby Admin - Oficial</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+:root { --accent: #e19d9d; --bg: #0a0a0a; --card: #161616; --text: #ffffff; }
+body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 90px; }
+.header { display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid #222; }
+.container { padding: 15px; max-width: 600px; margin: auto; }
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.stat-card { background: var(--card); padding: 18px; border-radius: 15px; border: 1px solid #222; text-align: center; }
+.stat-card h3 { color: var(--accent); margin: 0; }
+.btn-primary { background: var(--accent); color: white; border: none; padding: 16px; border-radius: 12px; font-weight: bold; width: 100%; cursor: pointer; }
+.tab-bar { position: fixed; bottom: 0; width: 100%; background: #111; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #222; }
+.hidden { display: none; }
+</style>
 </head>
+
 <body id="admin-body" class="hidden">
+
 <div class="header">
     <h2 style="color: var(--accent); font-weight: 300; margin: 0;">Baby Admin</h2>
     <button onclick="copyClientLink()" style="background: #25d366; color: white; border: none; padding: 8px 14px; border-radius: 20px; font-weight: bold;">🔗 COPIAR LINK</button>
 </div>
+
 <div class="container">
+
+    <!-- DASHBOARD -->
     <div id="section-dash" class="content-section">
         <div id="stats-container" class="stats-grid">
-            <div class="stat-card"><h3 id="ganhos">R$ 0,00</h3><p>Ganhos</p></div>
-            <div class="stat-card"><h3 id="agenda-count">0</h3><p>Agenda</p></div>
+            <div class="stat-card">
+                <h3 id="ganhos">R$ 0,00</h3>
+                <p>Ganhos</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="agenda-count">0</h3>
+                <p>Agenda</p>
+            </div>
         </div>
+
         <canvas id="chartMobile" height="200" style="margin-top:20px;"></canvas>
     </div>
+
+    <!-- GERENCIAR -->
     <div id="section-manage" class="content-section hidden">
         <div style="background: var(--card); padding: 20px; border-radius: 20px; border: 1px solid #222;">
             <h3>+ Novo Serviço</h3>
-            <input type="text" id="svc-nome" placeholder="Nome" style="width:100%; padding:12px; margin-bottom:10px; background:#000; border:1px solid #333; color:#fff;">
-            <input type="number" id="svc-preco" placeholder="Preço" style="width:100%; padding:12px; margin-bottom:10px; background:#000; border:1px solid #333; color:#fff;">
+
+            <input type="text" id="svc-nome" placeholder="Nome"
+                style="width:100%; padding:12px; margin-bottom:10px; background:#000; border:1px solid #333; color:#fff;">
+
+            <input type="number" id="svc-preco" placeholder="Preço"
+                style="width:100%; padding:12px; margin-bottom:10px; background:#000; border:1px solid #333; color:#fff;">
+
             <button class="btn-primary" onclick="saveData()">Salvar</button>
         </div>
     </div>
+
 </div>
+
 <div class="tab-bar">
     <div onclick="switchTab('dash')">📊<br>Início</div>
     <div onclick="switchTab('manage')">🛠️<br>Serviços</div>
 </div>
+
 <script>
-    const _supabase = supabase.createClient('https://htraketscvmlaecbvdum.supabase.co', 'sb_publishable_kpTujdxJLja9w0YrfVHqkg_o2VrRgzy');
-    const MEU_ID = 1;
-    if(prompt("Senha:") === "1234") { document.getElementById('admin-body').classList.remove('hidden'); atualizarPainel(); }
-    else { window.location.href = "index.html"; }
 
-    function switchTab(t) { 
-        document.querySelectorAll('.content-section').forEach(s => s.classList.add('hidden'));
-        document.getElementById('section-' + t).classList.remove('hidden');
+// 🔥 CONEXÃO SUPABASE
+const _supabase = supabase.createClient(
+    'https://htraketscvmlaecbvdum.supabase.co',
+    'sb_publishable_kpTujdxJLja9w0YrfVHqkg_o2VrRgzy'
+);
+
+const MEU_ID = 1;
+
+// 🔐 LOGIN SIMPLES
+if(prompt("Senha:") === "1234") {
+    document.getElementById('admin-body').classList.remove('hidden');
+    atualizarPainel();
+} else {
+    window.location.href = "index.html";
+}
+
+// 🔄 TROCAR ABAS
+function switchTab(t) {
+    document.querySelectorAll('.content-section').forEach(s => s.classList.add('hidden'));
+    document.getElementById('section-' + t).classList.remove('hidden');
+}
+
+// 💰 DASHBOARD (CORRIGIDO)
+async function atualizarPainel() {
+
+    const { data, error } = await _supabase
+        .from('lista_agendamentos')
+        .select('*');
+
+    if (error) {
+        console.error(error);
+        return;
     }
 
-    const { data } = await _supabase
-  .from('lista_agendamentos')
-  .select('*');
+    if (data) {
 
-if(data) {
-    const total = data.reduce((sum, i) => sum + (i.valor_total_num || 0), 0);async function atualizarPainel() {
-        const { data } = await _supabase.from('agendamentos').select('*').eq('salao_id', MEU_ID);
-        if(data) {
-            const total = data.reduce((sum, i) => sum + (parseFloat(i.preco) || 0), 0);
-            document.getElementById('ganhos').innerText = `R$ ${total.toFixed(2)}`;
-            document.getElementById('agenda-count').innerText = data.length;
+        // soma segura (ignora null)
+        const total = data.reduce((sum, i) => sum + (i.valor_total_num || 0), 0);
+
+        document.getElementById('ganhos').innerText = `R$ ${total.toFixed(2)}`;
+        document.getElementById('agenda-count').innerText = data.length;
+
+        gerarGrafico(data);
+    }
+}
+
+// 📊 GRÁFICO SIMPLES
+function gerarGrafico(data) {
+
+    const porDia = {};
+
+    data.forEach(item => {
+        const dia = item.data_agendamento;
+
+        if (!porDia[dia]) {
+            porDia[dia] = 0;
         }
-    }
 
-    async function saveData() {
-        const nome = document.getElementById('svc-nome').value;
-        const preco = document.getElementById('svc-preco').value;
-        await _supabase.from('servicos_cadastrados').insert([{ nome, preco: parseFloat(preco), admin_id: MEU_ID }]);
-        location.reload();
-    }
+        porDia[dia] += (item.valor_total_num || 0);
+    });
 
-    function copyClientLink() {
-        const link = "https://baby-hair-app.vercel.app/index.html?salao=1";
-        navigator.clipboard.writeText(link).then(() => alert("✅ Link Copiado!"));
-    }
+    const labels = Object.keys(porDia);
+    const valores = Object.values(porDia);
+
+    const ctx = document.getElementById('chartMobile');
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Faturamento por dia',
+                data: valores
+            }]
+        }
+    });
+}
+
+// ➕ CADASTRAR SERVIÇO (INALTERADO)
+async function saveData() {
+    const nome = document.getElementById('svc-nome').value;
+    const preco = document.getElementById('svc-preco').value;
+
+    await _supabase
+        .from('servicos_cadastrados')
+        .insert([{ nome, preco: parseFloat(preco), admin_id: MEU_ID }]);
+
+    location.reload();
+}
+
+// 🔗 LINK CLIENTE
+function copyClientLink() {
+    const link = "https://baby-hair-app.vercel.app/index.html?salao=1";
+    navigator.clipboard.writeText(link).then(() => alert("✅ Link Copiado!"));
+}
+
 </script>
+
 </body>
 </html>
