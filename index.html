@@ -3,41 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baby Hair Pro - Salão de Beleza</title>
+    <title>Baby Hair Pro - Clean Agenda</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --accent: #e19d9d; --dark: #1f1f1f; --card: #2d2d2d; --text: #f5f5f5; --bg: #121212; }
-        body { font-family: 'Segoe UI', Roboto, sans-serif; background-color: var(--bg); color: var(--text); display: flex; justify-content: center; padding: 20px; margin: 0; }
-        .container { background: var(--card); border-radius: 20px; width: 100%; max-width: 400px; padding: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.6); border: 1px solid #3d3d3d; position: relative; }
-        h1 { text-align: center; color: var(--accent); font-size: 26px; font-weight: 300; letter-spacing: 3px; margin-bottom: 30px; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); color: var(--text); display: flex; justify-content: center; padding: 20px; margin: 0; }
+        .container { background: var(--card); border-radius: 20px; width: 100%; max-width: 400px; padding: 25px; border: 1px solid #3d3d3d; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h1 { text-align: center; color: var(--accent); letter-spacing: 2px; font-weight: 300; margin-bottom: 25px; }
         
-        .section-title { font-size: 13px; color: var(--accent); margin-top: 25px; margin-bottom: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
-        .list-horizontal { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none; }
-        .item-card { min-width: 110px; background: #383838; padding: 15px 10px; border-radius: 15px; text-align: center; cursor: pointer; border: 2px solid transparent; transition: 0.3s; }
-        .item-card.selected { border-color: var(--accent); background: #454545; box-shadow: 0 0 10px rgba(225, 157, 157, 0.3); }
-        .item-card .avatar { width: 55px; height: 55px; border-radius: 50%; background: var(--accent); margin: 0 auto 8px; display: flex; align-items: center; justify-content: center; color: var(--bg); font-weight: bold; }
-        .item-card p { margin: 0; font-size: 13px; font-weight: 500; }
+        .section-title { font-size: 12px; color: var(--accent); margin-top: 20px; margin-bottom: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+        
+        /* Seleção de Itens */
+        .list-horizontal { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none; }
+        .item-card { min-width: 100px; background: #383838; padding: 15px 10px; border-radius: 15px; text-align: center; cursor: pointer; border: 2px solid transparent; opacity: 0.3; pointer-events: none; transition: 0.4s; }
+        .item-card.enabled { opacity: 1; pointer-events: auto; }
+        .item-card.selected { border-color: var(--accent); background: #454545; box-shadow: 0 0 10px rgba(225, 157, 157, 0.2); }
+        .item-card p { margin: 0; font-size: 13px; font-weight: 500; line-height: 1.2; }
 
-        .product-card { min-width: 140px; background: #383838; border-radius: 12px; padding: 12px; text-align: center; border: 1px solid #444; }
-        .product-price { color: var(--accent); font-weight: bold; margin: 8px 0; display: block; }
-        .btn-add { background: transparent; border: 1px solid var(--accent); color: var(--accent); padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 11px; transition: 0.3s; }
-        
-        input, select { width: 100%; padding: 14px; margin-top: 8px; border-radius: 10px; border: 1px solid #444; background: #181818; color: white; box-sizing: border-box; outline: none; }
-        
-        /* Checkout e Tags de Remoção */
-        .checkout-box { background: rgba(0,0,0,0.2); padding: 18px; border-radius: 15px; margin-top: 25px; border: 1px solid var(--accent); }
-        .checkout-item { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px; opacity: 0.9; }
-        .product-tag-list { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
-        .product-tag { background: #444; color: var(--accent); padding: 4px 10px; border-radius: 15px; font-size: 11px; display: flex; align-items: center; gap: 8px; border: 1px solid #555; }
-        .btn-remove { color: #ff8b94; cursor: pointer; font-weight: bold; font-size: 14px; }
-        
-        .total { border-top: 1px solid #444; padding-top: 12px; font-weight: bold; color: var(--accent); font-size: 20px; }
-        .btn-confirm { width: 100%; padding: 16px; background: var(--accent); color: white; border: none; border-radius: 12px; font-weight: bold; font-size: 17px; margin-top: 25px; cursor: pointer; }
+        /* Grid de Horários */
+        .horarios-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; }
+        .hora-item { background: #383838; padding: 10px; border-radius: 10px; text-align: center; font-size: 13px; cursor: pointer; border: 1px solid #444; transition: 0.2s; }
+        .hora-item:hover { border-color: var(--accent); }
+        .hora-item.selected { background: var(--accent); color: var(--bg); font-weight: bold; border-color: var(--accent); }
 
-        #modal-sucesso { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 100; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box;}
-        .modal-content { background: var(--card); padding: 30px; border-radius: 20px; text-align: center; border: 1px solid var(--accent); max-width: 350px; width: 100%; animation: slideUp 0.4s ease; }
-        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .btn-zap { background: #25d366; color: white; border: none; padding: 15px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 20px; font-size: 16px; }
+        input, select { width: 100%; padding: 14px; margin-top: 5px; border-radius: 12px; border: 1px solid #444; background: #181818; color: white; box-sizing: border-box; outline: none; }
+        input:focus { border-color: var(--accent); }
+
+        .checkout-box { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 15px; margin-top: 20px; border: 1px solid var(--accent); font-size: 14px; line-height: 1.6; }
+        
+        .btn-confirm { width: 100%; padding: 18px; background: var(--accent); color: white; border: none; border-radius: 15px; font-weight: bold; font-size: 16px; margin-top: 20px; cursor: pointer; transition: 0.3s; }
+        .btn-confirm:disabled { background: #444; cursor: not-allowed; }
+
+        #modal-sucesso { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); align-items:center; justify-content:center; z-index: 1000; }
+        .modal-body { background: var(--card); padding: 30px; border-radius: 20px; text-align: center; border: 1px solid var(--accent); max-width: 320px; }
     </style>
 </head>
 <body>
@@ -45,70 +43,41 @@
 <div class="container">
     <h1>Baby Hair</h1>
 
-    <div class="section-title">Selecione a Profissional</div>
-    <div class="list-horizontal">
-        <div class="item-card" onclick="selectPro(this, 'Carla Mendes')">
-            <div class="avatar">CM</div>
-            <p>Carla Mendes</p>
-        </div>
-        <div class="item-card" onclick="selectPro(this, 'Juliana Souza')">
-            <div class="avatar">JS</div>
-            <p>Juliana Souza</p>
-        </div>
-        <div class="item-card" onclick="selectPro(this, 'Ana Beatriz')">
-            <div class="avatar">AB</div>
-            <p>Ana Beatriz</p>
-        </div>
-    </div>
-
-    <div class="section-title">Dados da Cliente</div>
-    <input type="text" id="cliente_nome" placeholder="Seu nome completo">
-    <input type="text" id="contato" placeholder="WhatsApp (DDD)" oninput="maskPhone(this)">
-
-    <div class="section-title">Procedimento</div>
-    <select id="servico" onchange="updateCheckout()">
-        <option value="0">Escolha o serviço...</option>
+    <div class="section-title">1. Procedimento</div>
+    <select id="servico" onchange="filterPros()">
+        <option value="0">O que vamos fazer hoje?</option>
         <option value="80">Escova & Hidratação - R$ 80,00</option>
         <option value="150">Corte & Coloração - R$ 150,00</option>
-        <option value="50">Manicure & Pedicure - R$ 50,00</option>
+        <option value="50">Manicure - R$ 50,00</option>
     </select>
 
-    <div class="section-title">Mimos para seu cabelo</div>
-    <div class="list-horizontal">
-        <div class="product-card">
-            <p>Máscara Repair</p>
-            <span class="product-price">R$ 45,00</span>
-            <button class="btn-add" onclick="addProduct('Máscara Repair', 45)">Adicionar</button>
-        </div>
-        <div class="product-card">
-            <p>Sérum Finalizador</p>
-            <span class="product-price">R$ 32,00</span>
-            <button class="btn-add" onclick="addProduct('Sérum', 32)">Adicionar</button>
-        </div>
+    <div class="section-title">2. Profissional</div>
+    <div class="list-horizontal" id="lista-pros">
+        <div class="item-card" id="pro-Carla" onclick="selectPro(this, 'Carla Mendes')"><p>Carla Mendes<br><small style="opacity:0.7">Cabelos</small></p></div>
+        <div class="item-card" id="pro-Juliana" onclick="selectPro(this, 'Juliana Souza')"><p>Juliana Souza<br><small style="opacity:0.7">Unhas</small></p></div>
+        <div class="item-card" id="pro-Ana" onclick="selectPro(this, 'Ana Beatriz')"><p>Ana Beatriz<br><small style="opacity:0.7">Completo</small></p></div>
     </div>
 
-    <div class="section-title">Forma de Pagamento</div>
-    <select id="pagamento">
-        <option value="Pix">Pix</option>
-        <option value="Cartão">Cartão</option>
-        <option value="Dinheiro">Dinheiro</option>
-    </select>
+    <div class="section-title">3. Data e Horários Disponíveis</div>
+    <input type="date" id="data_agendamento" onchange="checkAvailability()">
+    <div class="horarios-grid" id="grid-horarios"></div>
 
-    <div class="checkout-box">
-        <div class="checkout-item"><span>Procedimento:</span> <span id="check-servico">R$ 0,00</span></div>
-        <div id="product-tags" class="product-tag-list"></div>
-        <div class="checkout-item"><span>Total Produtos:</span> <span id="check-produtos">R$ 0,00</span></div>
-        <div class="checkout-item total"><span>Total:</span> <span id="check-total">R$ 0,00</span></div>
+    <div class="section-title">4. Identificação</div>
+    <input type="text" id="cliente_nome" placeholder="Seu nome completo">
+    <input type="text" id="contato" placeholder="WhatsApp (73) 99999-9999">
+
+    <div class="checkout-box" id="resumo">
+        Aguardando escolhas...
     </div>
 
     <button onclick="salvar()" id="btn-confirm" class="btn-confirm">Confirmar Agendamento</button>
 </div>
 
 <div id="modal-sucesso">
-    <div class="modal-content">
-        <h2>✨ Quase lá! ✨</h2>
-        <p>Seu agendamento foi registrado.</p>
-        <button class="btn-zap" onclick="enviarZap()">Enviar para WhatsApp</button>
+    <div class="modal-body">
+        <h2 style="color:var(--accent)">✨ Sucesso!</h2>
+        <p>Seu horário foi reservado.</p>
+        <button style="background:#25d366; color:white; border:none; padding:15px; width:100%; border-radius:12px; font-weight:bold; cursor:pointer;" onclick="enviarZap()">Enviar para WhatsApp</button>
     </div>
 </div>
 
@@ -118,96 +87,119 @@
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let proSelecionada = "";
-    let listaProdutos = [];
+    let horaSelecionada = "";
+    
+    const especialidades = {
+        "Escova & Hidratação - R$ 80,00": ["Carla Mendes", "Ana Beatriz"],
+        "Corte & Coloração - R$ 150,00": ["Carla Mendes", "Ana Beatriz"],
+        "Manicure - R$ 50,00": ["Juliana Souza", "Ana Beatriz"]
+    };
 
-    function maskPhone(i) {
-        let v = i.value.replace(/\D/g, "");
-        v = v.replace(/^(\d{2})(\d)/g, "($1) $2");
-        v = v.replace(/(\d)(\d{4})$/, "$1-$2");
-        i.value = v;
+    function filterPros() {
+        const servico = document.getElementById('servico').options[document.getElementById('servico').selectedIndex].text;
+        const habilitadas = especialidades[servico] || [];
+        
+        document.querySelectorAll('.item-card').forEach(card => {
+            card.classList.remove('enabled', 'selected');
+            const nomeCard = card.querySelector('p').childNodes[0].textContent.trim();
+            if (habilitadas.includes(nomeCard)) card.classList.add('enabled');
+        });
+        proSelecionada = "";
+        horaSelecionada = "";
+        checkAvailability();
     }
 
     function selectPro(el, nome) {
         document.querySelectorAll('.item-card').forEach(c => c.classList.remove('selected'));
         el.classList.add('selected');
         proSelecionada = nome;
+        horaSelecionada = "";
+        checkAvailability();
     }
 
-    function addProduct(nome, preco) {
-        // João: Agora adicionamos um ID único para cada clique para poder remover individualmente
-        const id = Date.now();
-        listaProdutos.push({ id, nome, preco });
-        updateCheckout();
-    }
-
-    function removeProduct(id) {
-        listaProdutos = listaProdutos.filter(p => p.id !== id);
-        updateCheckout();
-    }
-
-    function updateCheckout() {
-        const servicoPreco = parseFloat(document.getElementById('servico').value) || 0;
-        const totalProdutos = listaProdutos.reduce((acc, p) => acc + p.preco, 0);
+    async function checkAvailability() {
+        const data = document.getElementById('data_agendamento').value;
+        const grid = document.getElementById('grid-horarios');
+        grid.innerHTML = "";
         
-        // Maria: Atualiza a lista visual de tags
-        const tagContainer = document.getElementById('product-tags');
-        tagContainer.innerHTML = "";
-        listaProdutos.forEach(p => {
-            tagContainer.innerHTML += `
-                <div class="product-tag">
-                    ${p.nome} (R$ ${p.preco})
-                    <span class="btn-remove" onclick="removeProduct(${p.id})">✕</span>
-                </div>
-            `;
-        });
+        if (!data || !proSelecionada) return;
 
-        document.getElementById('check-servico').innerText = `R$ ${servicoPreco.toFixed(2)}`;
-        document.getElementById('check-produtos').innerText = `R$ ${totalProdutos.toFixed(2)}`;
-        document.getElementById('check-total').innerText = `R$ ${(servicoPreco + totalProdutos).toFixed(2)}`;
+        const { data: ocupados } = await _supabase
+            .from('lista_agendamentos')
+            .select('horario_agendamento')
+            .eq('data_agendamento', data)
+            .eq('barbeiro', proSelecionada);
+
+        const listaOcupados = ocupados ? ocupados.map(o => o.horario_agendamento) : [];
+        const horariosPadrao = ["08:00", "09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00", "17:00"];
+
+        horariosPadrao.forEach(h => {
+            // MARIA: Aqui está a mágica. Se estiver ocupado, nem criamos o botão!
+            if (!listaOcupados.includes(h)) {
+                const div = document.createElement('div');
+                div.className = 'hora-item';
+                div.innerText = h;
+                div.onclick = () => {
+                    document.querySelectorAll('.hora-item').forEach(i => i.classList.remove('selected'));
+                    div.classList.add('selected');
+                    horaSelecionada = h;
+                    updateResumo();
+                };
+                grid.appendChild(div);
+            }
+        });
+        updateResumo();
+    }
+
+    function updateResumo() {
+        const servico = document.getElementById('servico').options[document.getElementById('servico').selectedIndex].text;
+        const data = document.getElementById('data_agendamento').value;
+        
+        document.getElementById('resumo').innerHTML = `
+            <b>Profissional:</b> ${proSelecionada || '---'}<br>
+            <b>Serviço:</b> ${servico !== 'O que vamos fazer hoje?' ? servico : '---'}<br>
+            <b>Data/Hora:</b> ${data ? data.split('-').reverse().join('/') : '---'} às ${horaSelecionada || '---'}
+        `;
     }
 
     async function salvar() {
-        const btn = document.getElementById('btn-confirm');
         const nome = document.getElementById('cliente_nome').value;
+        const data = document.getElementById('data_agendamento').value;
         const zap = document.getElementById('contato').value;
-        const servSelect = document.getElementById('servico');
-        const servTxt = servSelect.options[servSelect.selectedIndex].text;
-        const formaPag = document.getElementById('pagamento').value;
-        const total = document.getElementById('check-total').innerText;
-
-        if (!nome || !proSelecionada || servSelect.value == "0") {
-            alert("Preencha nome, profissional e procedimento!"); return;
+        
+        if (!nome || !proSelecionada || !horaSelecionada || !data) {
+            alert("Por favor, preencha todos os campos antes de confirmar!");
+            return;
         }
 
-        btn.disabled = true; btn.innerText = "Salvando...";
+        const btn = document.getElementById('btn-confirm');
+        btn.disabled = true;
+        btn.innerText = "Agendando...";
 
-        try {
-            const nomesProdutos = listaProdutos.map(p => p.nome).join(", ");
-            const { error } = await _supabase.from('lista_agendamentos').insert([{ 
-                cliente_nome: nome, contato: zap, servico: servTxt,
-                barbeiro: proSelecionada, produtos: nomesProdutos,
-                forma_pagamento: formaPag, valor_total: total
-            }]);
-            if (error) throw error;
+        const { error } = await _supabase.from('lista_agendamentos').insert([{ 
+            cliente_nome: nome, 
+            contato: zap,
+            servico: document.getElementById('servico').options[document.getElementById('servico').selectedIndex].text,
+            barbeiro: proSelecionada, 
+            data_agendamento: data, 
+            horario_agendamento: horaSelecionada,
+            valor_total: "Consultar"
+        }]);
+
+        if (!error) {
             document.getElementById('modal-sucesso').style.display = 'flex';
-        } catch (e) {
-            alert("Erro: " + e.message);
-        } finally {
-            btn.disabled = false; btn.innerText = "Confirmar Agendamento";
+        } else {
+            alert("Erro ao agendar: " + error.message);
+            btn.disabled = false;
+            btn.innerText = "Confirmar Agendamento";
         }
     }
 
     function enviarZap() {
         const nome = document.getElementById('cliente_nome').value;
-        const pro = proSelecionada;
-        const total = document.getElementById('check-total').innerText;
-        const servTxt = document.getElementById('servico').options[document.getElementById('servico').selectedIndex].text;
-        const nomesProdutos = listaProdutos.map(p => p.nome).join(", ") || "Nenhum";
-        
-        const telefoneDono = "5573982139332"; 
-        const msg = `Olá! Agendamento Baby Hair:%0A%0A🌸 *Cliente:* ${nome}%0A💇‍♀️ *Profissional:* ${pro}%0A✂️ *Serviço:* ${servTxt}%0A💄 *Produtos:* ${nomesProdutos}%0A💰 *Total:* ${total}%0A%0AConfirma?`;
-        
-        window.open(`https://wa.me/${telefoneDono}?text=${msg}`, '_blank');
+        const data = document.getElementById('data_agendamento').value.split('-').reverse().join('/');
+        const msg = `Olá! Fiz um agendamento no Baby Hair:%0A%0A🌸 *Cliente:* ${nome}%0A📅 *Data:* ${data}%0A⏰ *Hora:* ${horaSelecionada}%0A💇‍♀️ *Profissional:* ${proSelecionada}`;
+        window.open(`https://wa.me/5573982139332?text=${msg}`, '_blank');
     }
 </script>
 </body>
