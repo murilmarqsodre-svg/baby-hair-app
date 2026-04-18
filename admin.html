@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Baby Admin - Oficial</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -19,152 +19,133 @@ body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--
 .btn-primary { background: var(--accent); color: white; border: none; padding: 16px; border-radius: 12px; font-weight: bold; width: 100%; cursor: pointer; }
 .tab-bar { position: fixed; bottom: 0; width: 100%; background: #111; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #222; }
 .hidden { display: none; }
+select { width:100%; padding:10px; margin-bottom:15px; border-radius:10px; border:none; }
 </style>
 </head>
 
 <body id="admin-body" class="hidden">
 
 <div class="header">
-    <h2 style="color: var(--accent); font-weight: 300; margin: 0;">Baby Admin</h2>
-    <button onclick="copyClientLink()" style="background: #25d366; color: white; border: none; padding: 8px 14px; border-radius: 20px; font-weight: bold;">🔗 COPIAR LINK</button>
+    <h2 style="color: var(--accent); margin:0;">Baby Admin</h2>
+    <button onclick="copyClientLink()" style="background:#25d366;color:white;border:none;padding:8px 14px;border-radius:20px;">🔗 LINK</button>
 </div>
 
 <div class="container">
 
-    <!-- DASHBOARD -->
-    <div id="section-dash" class="content-section">
-        <div id="stats-container" class="stats-grid">
-            <div class="stat-card">
-                <h3 id="ganhos">R$ 0,00</h3>
-                <p>Ganhos</p>
-            </div>
-            <div class="stat-card">
-                <h3 id="agenda-count">0</h3>
-                <p>Agenda</p>
-            </div>
-        </div>
+<!-- FILTRO -->
+<select id="filtroMes" onchange="filtrarMes()"></select>
 
-        <canvas id="chartMobile" height="200" style="margin-top:20px;"></canvas>
+<div class="stats-grid">
+    <div class="stat-card">
+        <h3 id="ganhos">R$ 0,00</h3>
+        <p>Receita do mês</p>
     </div>
-
-    <!-- GERENCIAR -->
-    <div id="section-manage" class="content-section hidden">
-        <div style="background: var(--card); padding: 20px; border-radius: 20px; border: 1px solid #222;">
-            <h3>+ Novo Serviço</h3>
-
-            <input type="text" id="svc-nome" placeholder="Nome"
-                style="width:100%; padding:12px; margin-bottom:10px; background:#000; border:1px solid #333; color:#fff;">
-
-            <input type="number" id="svc-preco" placeholder="Preço"
-                style="width:100%; padding:12px; margin-bottom:10px; background:#000; border:1px solid #333; color:#fff;">
-
-            <button class="btn-primary" onclick="saveData()">Salvar</button>
-        </div>
+    <div class="stat-card">
+        <h3 id="agenda-count">0</h3>
+        <p>Agendamentos</p>
     </div>
+</div>
+
+<canvas id="chartMobile" height="200" style="margin-top:20px;"></canvas>
 
 </div>
 
 <div class="tab-bar">
-    <div onclick="switchTab('dash')">📊<br>Início</div>
-    <div onclick="switchTab('manage')">🛠️<br>Serviços</div>
+    <div>📊<br>Dashboard</div>
 </div>
 
 <script>
 
-// 🔥 CONEXÃO SUPABASE
 const _supabase = supabase.createClient(
-    'https://htraketscvmlaecbvdum.supabase.co',
-    'sb_publishable_kpTujdxJLja9w0YrfVHqkg_o2VrRgzy'
+'https://htraketscvmlaecbvdum.supabase.co',
+'sb_publishable_kpTujdxJLja9w0YrfVHqkg_o2VrRgzy'
 );
 
-const MEU_ID = 1;
-
-// 🔐 LOGIN SIMPLES
-if(prompt("Senha:") === "1234") {
-    document.getElementById('admin-body').classList.remove('hidden');
-    atualizarPainel();
-} else {
-    window.location.href = "index.html";
+// LOGIN
+if(prompt("Senha:") === "1234"){
+ document.getElementById('admin-body').classList.remove('hidden');
+ carregarMeses();
+}else{
+ location.href="index.html";
 }
 
-// 🔄 TROCAR ABAS
-function switchTab(t) {
-    document.querySelectorAll('.content-section').forEach(s => s.classList.add('hidden'));
-    document.getElementById('section-' + t).classList.remove('hidden');
+// 🔹 CARREGAR MESES DISPONÍVEIS
+async function carregarMeses(){
+
+ const { data } = await _supabase.from('lista_agendamentos').select('data_agendamento');
+
+ const select = document.getElementById("filtroMes");
+ const meses = new Set();
+
+ data.forEach(d=>{
+   const mes = d.data_agendamento.slice(0,7);
+   meses.add(mes);
+ });
+
+ select.innerHTML = "";
+
+ [...meses].sort().reverse().forEach(m=>{
+   const opt = document.createElement("option");
+   opt.value = m;
+   opt.text = m;
+   select.appendChild(opt);
+ });
+
+ filtrarMes();
 }
 
-// 💰 DASHBOARD (CORRIGIDO)
-async function atualizarPainel() {
+// 🔹 FILTRO PRINCIPAL
+async function filtrarMes(){
 
-    const { data, error } = await _supabase
-        .from('lista_agendamentos')
-        .select('*');
+ const mes = document.getElementById("filtroMes").value;
 
-    if (error) {
-        console.error(error);
-        return;
-    }
+ const { data } = await _supabase
+   .from('lista_agendamentos')
+   .select('*')
+   .like('data_agendamento', mes + '%');
 
-    if (data) {
+ if(!data) return;
 
-        // soma segura (ignora null)
-        const total = data.reduce((sum, i) => sum + (i.valor_total_num || 0), 0);
+ const total = data.reduce((sum,i)=>sum+(i.valor_total_num||0),0);
 
-        document.getElementById('ganhos').innerText = `R$ ${total.toFixed(2)}`;
-        document.getElementById('agenda-count').innerText = data.length;
+ document.getElementById("ganhos").innerText = "R$ " + total.toFixed(2);
+ document.getElementById("agenda-count").innerText = data.length;
 
-        gerarGrafico(data);
-    }
+ gerarGrafico(data);
 }
 
-// 📊 GRÁFICO SIMPLES
-function gerarGrafico(data) {
+// 🔹 GRÁFICO POR DIA
+function gerarGrafico(data){
 
-    const porDia = {};
+ const porDia = {};
 
-    data.forEach(item => {
-        const dia = item.data_agendamento;
+ data.forEach(i=>{
+   const dia = i.data_agendamento.split("-")[2];
 
-        if (!porDia[dia]) {
-            porDia[dia] = 0;
-        }
+   if(!porDia[dia]) porDia[dia]=0;
+   porDia[dia]+= (i.valor_total_num||0);
+ });
 
-        porDia[dia] += (item.valor_total_num || 0);
-    });
+ const labels = Object.keys(porDia);
+ const valores = Object.values(porDia);
 
-    const labels = Object.keys(porDia);
-    const valores = Object.values(porDia);
+ const ctx = document.getElementById('chartMobile');
 
-    const ctx = document.getElementById('chartMobile');
+ if(window.chart) window.chart.destroy();
 
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Faturamento por dia',
-                data: valores
-            }]
-        }
-    });
+ window.chart = new Chart(ctx,{
+   type:'bar',
+   data:{
+     labels:labels,
+     datasets:[{ label:'R$', data:valores }]
+   }
+ });
 }
 
-// ➕ CADASTRAR SERVIÇO (INALTERADO)
-async function saveData() {
-    const nome = document.getElementById('svc-nome').value;
-    const preco = document.getElementById('svc-preco').value;
-
-    await _supabase
-        .from('servicos_cadastrados')
-        .insert([{ nome, preco: parseFloat(preco), admin_id: MEU_ID }]);
-
-    location.reload();
-}
-
-// 🔗 LINK CLIENTE
-function copyClientLink() {
-    const link = "https://baby-hair-app.vercel.app/index.html?salao=1";
-    navigator.clipboard.writeText(link).then(() => alert("✅ Link Copiado!"));
+// LINK
+function copyClientLink(){
+ navigator.clipboard.writeText("https://baby-hair-app.vercel.app/");
+ alert("Link copiado!");
 }
 
 </script>
