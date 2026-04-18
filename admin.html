@@ -56,7 +56,12 @@
         document.getElementById('section-' + t).classList.remove('hidden');
     }
 
-    async function atualizarPainel() {
+    const { data } = await _supabase
+  .from('lista_agendamentos')
+  .select('*');
+
+if(data) {
+    const total = data.reduce((sum, i) => sum + (i.valor_total_num || 0), 0);async function atualizarPainel() {
         const { data } = await _supabase.from('agendamentos').select('*').eq('salao_id', MEU_ID);
         if(data) {
             const total = data.reduce((sum, i) => sum + (parseFloat(i.preco) || 0), 0);
