@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Baby Hair - Agendamento</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+  font-family: Arial;
+  background: #fff0f5;
+  margin: 0;
+}
+
+header {
+  background: #ff69b4;
+  color: white;
+  padding: 15px;
+  text-align: center;
+}
+
+.section {
+  padding: 15px;
+}
+
+button {
+  background: #ff69b4;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 6px;
+  margin: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* 🔥 efeito hover */
+button:hover {
+  transform: scale(1.05);
+}
+
+/* 🔥 botão selecionado */
+button.selected {
+  background: #c2185b;
+  transform: scale(1.05);
+}
+
+/* 🔥 botão desabilitado */
+button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.carousel {
+  display: flex;
+  overflow-x: auto;
+  gap: 10px;
+}
+
+.product {
+  min-width: 140px;
+  text-align: center;
+}
+
+.product img {
+  width: 100%;
+  border-radius: 10px;
+}
+
+.checkout {
+  background: white;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+input, select {
+  padding: 8px;
+  width: 100%;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<h2>Baby Hair 💇‍♀️</h2>
+<p>Agende seu horário</p>
+</header>
+
+<div class="section">
+<h3>Serviços</h3>
+<div id="services"></div>
+</div>
+
+<div class="section">
+<h3>Profissionais</h3>
+<div id="professionals"></div>
+</div>
+
+<div class="section">
+<h3>Escolha o dia</h3>
+<input type="date" id="date" onchange="dateSelected()">
+</div>
+
+<div class="section">
+<h3>Horários disponíveis</h3>
+<div id="times"></div>
+</div>
+
+<div class="section">
+<h3>Produtos</h3>
+<div class="carousel" id="products"></div>
+</div>
+
+<div class="section">
+<h3>Resumo do Pedido</h3>
+<div class="checkout" id="checkout"></div>
+</div>
+
+<div class="section">
+<h3>Seus dados</h3>
+<input placeholder="Seu nome" id="name"><br><br>
+<input placeholder="WhatsApp" id="phone"><br><br>
+
+<select id="payment">
+<option>Pix</option>
+<option>Cartão</option>
+<option>Dinheiro</option>
+</select>
+<br><br>
+
+<button onclick="finalizar()">Finalizar Agendamento</button>
+</div>
+
+<script>
+
+// 🔹 DADOS
+const services = [
+  { id: 1, name: "Corte", price: 30 },
+  { id: 2, name: "Luzes", price: 120 },
+  { id: 3, name: "Hidratação", price: 50 }
+];
+
+const professionals = [
+  { id: 1, name: "Carla", services: [2,3] },
+  { id: 2, name: "Ana", services: [1,3] }
+];
+
+const products = [
+  { id: 1, name: "Shampoo", price: 25, img: "https://via.placeholder.com/150" },
+  { id: 2, name: "Condicionador", price: 28, img: "https://via.placeholder.com/150" },
+  { id: 3, name: "Máscara Capilar", price: 45, img: "https://via.placeholder.com/150" },
+  { id: 4, name: "Óleo Capilar", price: 40, img: "https://via.placeholder.com/150" },
+  { id: 5, name: "Leave-in", price: 35, img: "https://via.placeholder.com/150" },
+  { id: 6, name: "Finalizador", price: 30, img: "https://via.placeholder.com/150" },
+  { id: 7, name: "Ampola", price: 20, img: "https://via.placeholder.com/150" }
+];
+
+// 🔹 ESTADO
+let selectedService = null;
+let selectedProfessional = null;
+let selectedDate = null;
+let selectedTime = null;
+let cart = {};
+
+// 🔹 AUX SELEÇÃO VISUAL
+function selectButton(parent, clickedBtn) {
+  Array.from(parent.children).forEach(btn => btn.classList.remove("selected"));
+  clickedBtn.classList.add("selected");
+}
+
+// 🔹 HORÁRIOS
+function generateTimes(date) {
+  const day = new Date(date).getDay();
+  let end = (day === 0) ? 12 : 19;
+  let times = [];
+
+  for (let h = 8; h <= end; h++) {
+    times.push(`${String(h).padStart(2,'0')}:00`);
+  }
+
+  return times;
+}
+
+// 🔹 STORAGE
+function getAppointments() {
+  return JSON.parse(localStorage.getItem("appointments") || "[]");
+}
+
+function saveAppointment(app) {
+  const list = getAppointments();
+  list.push(app);
+  localStorage.setItem("appointments", JSON.stringify(list));
+}
+
+// 🔹 SERVIÇOS
+function loadServices() {
+  const div = document.getElementById("services");
+
+  services.forEach(s => {
+    const btn = document.createElement("button");
+    btn.innerText = `${s.name} - R$${s.price}`;
+    btn.onclick = () => {
+      selectedService = s.id;
+      selectedProfessional = null;
+      selectedTime = null;
+      document.getElementById("times").innerHTML = "";
+      loadProfessionals();
+      updateCheckout();
+      selectButton(div, btn);
+    };
+    div.appendChild(btn);
+  });
+}
+
+// 🔹 PROFISSIONAIS
+function loadProfessionals() {
+  const div = document.getElementById("professionals");
+  div.innerHTML = "";
+
+  professionals
+    .filter(p => p.services.includes(selectedService))
+    .forEach(p => {
+      const btn = document.createElement("button");
+      btn.innerText = p.name;
+      btn.onclick = () => {
+        selectedProfessional = p.id;
+        loadTimes();
+        updateCheckout();
+        selectButton(div, btn);
+      };
+      div.appendChild(btn);
+    });
+}
+
+// 🔹 DATA
+function dateSelected() {
+  selectedDate = document.getElementById("date").value;
+  loadTimes();
+  updateCheckout();
+}
+
+// 🔹 HORÁRIOS
+function loadTimes() {
+  const div = document.getElementById("times");
+  div.innerHTML = "";
+
+  if (!selectedDate || !selectedProfessional) return;
+
+  const times = generateTimes(selectedDate);
+  const appointments = getAppointments();
+
+  times.forEach(t => {
+
+    const ocupado = appointments.some(a =>
+      a.date === selectedDate &&
+      a.professional === selectedProfessional &&
+      a.time === t
+    );
+
+    const btn = document.createElement("button");
+    btn.innerText = t;
+
+    if (ocupado) {
+      btn.disabled = true;
+    } else {
+      btn.onclick = () => {
+        selectedTime = t;
+        updateCheckout();
+        selectButton(div, btn);
+      };
+    }
+
+    div.appendChild(btn);
+  });
+}
+
+// 🔹 PRODUTOS
+function loadProducts() {
+  const div = document.getElementById("products");
+
+  products.forEach(p => {
+    const card = document.createElement("div");
+    card.className = "product";
+
+    card.innerHTML = `
+      <img src="${p.img}">
+      <p>${p.name}</p>
+      <p>R$${p.price}</p>
+      <button onclick="add(${p.id})">+</button>
+      <button onclick="remove(${p.id})">-</button>
+    `;
+
+    div.appendChild(card);
+  });
+}
+
+function add(id) {
+  cart[id] = (cart[id] || 0) + 1;
+  updateCheckout();
+}
+
+function remove(id) {
+  if(cart[id]) cart[id]--;
+  updateCheckout();
+}
+
+// 🔹 CHECKOUT
+function updateCheckout() {
+
+  const el = document.getElementById("checkout");
+  if (!el) return;
+
+  let html = "";
+  let total = 0;
+
+  const service = services.find(s => s.id === selectedService);
+  const professional = professionals.find(p => p.id === selectedProfessional);
+
+  if (service) {
+    html += `<p>Serviço: ${service.name} - R$${service.price}</p>`;
+    total += service.price;
+  }
+
+  if (professional) {
+    html += `<p>Profissional: ${professional.name}</p>`;
+  }
+
+  if (selectedDate && selectedTime) {
+    html += `<p>Data: ${selectedDate} às ${selectedTime}</p>`;
+  }
+
+  let productTotal = 0;
+
+  for (let id in cart) {
+    if (cart[id] > 0) {
+      const p = products.find(prod => prod.id == id);
+      const subtotal = p.price * cart[id];
+      productTotal += subtotal;
+
+      html += `<p>${p.name} x${cart[id]} - R$${subtotal}</p>`;
+    }
+  }
+
+  total += productTotal;
+
+  html += `<hr>`;
+  html += `<p>Produtos: R$${productTotal}</p>`;
+  html += `<p style="font-weight:bold;color:#c2185b">Total: R$${total}</p>`;
+
+  el.innerHTML = html;
+}
+
+// 🔹 FINALIZAR
+function finalizar() {
+
+  if (!selectedService || !selectedProfessional || !selectedDate || !selectedTime) {
+    alert("Preencha todas as etapas!");
+    return;
+  }
+
+  saveAppointment({
+    service: selectedService,
+    professional: selectedProfessional,
+    date: selectedDate,
+    time: selectedTime
+  });
+
+  alert("Agendamento confirmado!");
+  location.reload();
+}
+
+// INIT
+loadServices();
+loadProducts();
+
+</script>
+
+</body>
+</html>
