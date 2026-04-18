@@ -3,116 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baby Hair - Agendamento Oficial</title>
+    <title>Baby Hair - Agendar</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* RESTAURADO: Seu Layout Original Impecável */
         :root { --accent: #e19d9d; --bg: #0a0a0a; --card: #161616; --text: #ffffff; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        
-        .header { text-align: center; margin-bottom: 40px; margin-top: 20px; }
-        .header h1 { font-weight: 300; letter-spacing: 4px; color: var(--accent); text-transform: uppercase; margin: 0; }
-        .header p { color: #666; font-size: 14px; margin-top: 5px; }
-
-        .services-container { width: 100%; max-width: 450px; }
-        
-        .service-card { 
-            background: var(--card); 
-            border: 1px solid #222; 
-            border-radius: 20px; 
-            padding: 20px; 
-            margin-bottom: 15px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-        .service-card:active { transform: scale(0.98); background: #1f1f1f; }
-        
-        .service-info { text-align: left; }
-        .service-info h3 { margin: 0; font-size: 18px; font-weight: 500; color: #eee; }
-        .service-info p { margin: 5px 0 0; color: var(--accent); font-weight: bold; font-size: 16px; }
-
-        .btn-book { 
-            background-color: var(--accent); 
-            color: white; 
-            border: none; 
-            padding: 12px 20px; 
-            border-radius: 12px; 
-            font-weight: bold; 
-            font-size: 14px;
-            box-shadow: 0 4px 15px rgba(225, 157, 157, 0.2);
-        }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); padding: 20px; display: flex; flex-direction: column; align-items: center; margin: 0; }
+        .header { text-align: center; margin: 30px 0; }
+        .header h1 { color: var(--accent); letter-spacing: 4px; font-weight: 300; }
+        .service-card { background: var(--card); border: 1px solid #222; border-radius: 20px; padding: 20px; margin-bottom: 15px; width: 100%; max-width: 400px; display: flex; justify-content: space-between; align-items: center; }
+        .btn-book { background: var(--accent); color: white; border: none; padding: 12px 20px; border-radius: 12px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
-
-    <div class="header">
-        <h1>BABY HAIR</h1>
-        <p>Agendamento Exclusivo</p>
-    </div>
-
-    <div class="services-container" id="servicos-lista">
-        <p style="text-align: center; color: #444;">Sincronizando com o salão...</p>
-    </div>
+    <div class="header"><h1>BABY HAIR</h1><p>Agendamento Exclusivo</p></div>
+    <div id="lista" style="width: 100%; max-width: 400px;">Carregando...</div>
 
 <script>
-    const SUPABASE_URL = 'https://htraketscvmlaecbvdum.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_kpTujdxJLja9w0YrfVHqkg_o2VrRgzy';
-    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    
+    const _supabase = supabase.createClient('https://htraketscvmlaecbvdum.supabase.co', 'sb_publishable_kpTujdxJLja9w0YrfVHqkg_o2VrRgzy');
     const urlParams = new URLSearchParams(window.location.search);
     const SALAO_ID = urlParams.get('salao') || 1;
 
-    async function carregarServicosDoBanco() {
-        const { data, error } = await _supabase
-            .from('servicos_cadastrados')
-            .select('*')
-            .eq('admin_id', SALAO_ID);
-
-        const container = document.getElementById('servicos-lista');
+    async function load() {
+        const { data } = await _supabase.from('servicos_cadastrados').select('*').eq('admin_id', SALAO_ID);
+        const container = document.getElementById('lista');
         container.innerHTML = "";
-
-        if(data && data.length > 0) {
-            data.forEach(s => {
-                container.innerHTML += `
-                    <div class="service-card" onclick="processarAgendamento('${s.nome}', ${s.preco})">
-                        <div class="service-info">
-                            <h3>${s.nome}</h3>
-                            <p>R$ ${parseFloat(s.preco).toFixed(2)}</p>
-                        </div>
-                        <button class="btn-book">Agendar</button>
-                    </div>`;
-            });
-        } else {
-            container.innerHTML = "<p style='text-align:center; color:#666;'>Nenhum serviço disponível.</p>";
-        }
+        data.forEach(s => {
+            container.innerHTML += `
+                <div class="service-card">
+                    <div><strong>${s.nome}</strong><br><span style="color:var(--accent)">R$ ${s.preco.toFixed(2)}</span></div>
+                    <button class="btn-book" onclick="book('${s.nome}', ${s.preco})">Agendar</button>
+                </div>`;
+        });
     }
 
-    async function processarAgendamento(servicoNome, servicoPreco) {
-        const nomeCliente = prompt("Para confirmar o agendamento, digite seu nome:");
-        if(!nomeCliente) return;
-
-        // JOÃO: Ajustei para salvar exatamente o que o banco espera (salao_id)
-        const { error } = await _supabase.from('agendamentos').insert([
-            { 
-                nome: nomeCliente, 
-                servico: servicoNome, 
-                preco: servicoPreco, 
-                salao_id: SALAO_ID 
-            }
-        ]);
-
-        if(!error) {
-            alert("Sucesso, " + nomeCliente + "! Seu agendamento de " + servicoNome + " foi enviado ao Murilo.");
-        } else {
-            console.error(error);
-            alert("Erro técnico: " + error.message);
-        }
+    async function book(n, p) {
+        const cliente = prompt("Seu nome:");
+        if(!cliente) return;
+        const { error } = await _supabase.from('agendamentos').insert([{ nome: cliente, servico: n, preco: p, salao_id: SALAO_ID }]);
+        if(!error) alert("Agendado com sucesso!");
+        else alert("Erro: " + error.message);
     }
-
-    carregarServicosDoBanco();
+    load();
 </script>
 </body>
 </html>
