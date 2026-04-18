@@ -30,35 +30,12 @@ input, select { padding: 8px; width: 100%; }
 <p>Agende seu horário</p>
 </header>
 
-<div class="section">
-<h3>Serviços</h3>
-<div id="services"></div>
-</div>
-
-<div class="section">
-<h3>Profissionais</h3>
-<div id="professionals"></div>
-</div>
-
-<div class="section">
-<h3>Escolha o dia</h3>
-<input type="date" id="date" onchange="dateSelected()">
-</div>
-
-<div class="section">
-<h3>Horários disponíveis</h3>
-<div id="times"></div>
-</div>
-
-<div class="section">
-<h3>Produtos</h3>
-<div class="carousel" id="products"></div>
-</div>
-
-<div class="section">
-<h3>Resumo do Pedido</h3>
-<div class="checkout" id="checkout"></div>
-</div>
+<div class="section"><h3>Serviços</h3><div id="services"></div></div>
+<div class="section"><h3>Profissionais</h3><div id="professionals"></div></div>
+<div class="section"><h3>Escolha o dia</h3><input type="date" id="date" onchange="dateSelected()"></div>
+<div class="section"><h3>Horários disponíveis</h3><div id="times"></div></div>
+<div class="section"><h3>Produtos</h3><div class="carousel" id="products"></div></div>
+<div class="section"><h3>Resumo do Pedido</h3><div class="checkout" id="checkout"></div></div>
 
 <div class="section">
 <h3>Seus dados</h3>
@@ -83,7 +60,7 @@ const supabaseClient = supabase.createClient(
 'sb_publishable_kpTujdxJLja9w0YrfVHqkg_o2VrRgzy'
 );
 
-// 🔹 DADOS
+// 🔹 DADOS (mantidos)
 const services = [
   { id: 1, name: "Corte", price: 30 },
   { id: 2, name: "Luzes", price: 120 },
@@ -123,10 +100,61 @@ function saveAppointment(app) {
   localStorage.setItem("appointments", JSON.stringify(list));
 }
 
-// 🔹 CHECKOUT TOTAL
-function calcularTotal() {
+// 🔹 CHECKOUT ORIGINAL RESTAURADO (🔥 aqui estava o problema)
+function updateCheckout() {
+
+  const el = document.getElementById("checkout");
+  if (!el) return;
+
+  let html = "";
   let total = 0;
 
+  const service = services.find(s => s.id === selectedService);
+  const professional = professionals.find(p => p.id === selectedProfessional);
+
+  if (service) {
+    html += `<p>Serviço: ${service.name} - R$${service.price}</p>`;
+    total += service.price;
+  }
+
+  if (professional) {
+    html += `<p>Profissional: ${professional.name}</p>`;
+  }
+
+  if (selectedDate && selectedTime) {
+    html += `<p>Data: ${selectedDate} às ${selectedTime}</p>`;
+  }
+
+  let productTotal = 0;
+
+  for (let id in cart) {
+    if (cart[id] > 0) {
+      const p = products.find(prod => prod.id == id);
+      const subtotal = p.price * cart[id];
+      productTotal += subtotal;
+
+      html += `<p>${p.name} x${cart[id]} - R$${subtotal}</p>`;
+    }
+  }
+
+  total += productTotal;
+
+  html += `<hr>`;
+  html += `<p>Produtos: R$${productTotal}</p>`;
+  html += `<p style="font-weight:bold;color:#c2185b">Total: R$${total}</p>`;
+
+  el.innerHTML = html;
+}
+
+// 🔹 FINALIZAR (única adição: envio pro banco)
+async function finalizar() {
+
+  if (!selectedService || !selectedProfessional || !selectedDate || !selectedTime) {
+    alert("Preencha todas as etapas!");
+    return;
+  }
+
+  let total = 0;
   const service = services.find(s => s.id === selectedService);
   if (service) total += service.price;
 
@@ -137,21 +165,9 @@ function calcularTotal() {
     }
   }
 
-  return total;
-}
-
-// 🔹 FINALIZAR
-async function finalizar() {
-
-  if (!selectedService || !selectedProfessional || !selectedDate || !selectedTime) {
-    alert("Preencha todas as etapas!");
-    return;
-  }
-
-  const total = calcularTotal();
   const totalFormatado = `R$ ${total.toFixed(2)}`;
 
-  // 🔹 LOCAL (mantido)
+  // LOCAL
   saveAppointment({
     service: selectedService,
     professional: selectedProfessional,
@@ -159,25 +175,23 @@ async function finalizar() {
     time: selectedTime
   });
 
-  // 🔥 BANCO (NOVO — SEM QUEBRAR NADA)
-  await supabaseClient
-    .from('lista_agendamentos')
-    .insert([{
-      cliente_nome: document.getElementById("name").value,
-      cliente_sobrenome: "",
-      contato: document.getElementById("phone").value,
-      data_agendamento: selectedDate,
-      horario_agendamento: selectedTime,
-      forma_pagamento: document.getElementById("payment").value,
-      valor_total: totalFormatado,
-      valor_total_num: total
-    }]);
+  // BANCO (NOVO)
+  await supabaseClient.from('lista_agendamentos').insert([{
+    cliente_nome: document.getElementById("name").value,
+    cliente_sobrenome: "",
+    contato: document.getElementById("phone").value,
+    data_agendamento: selectedDate,
+    horario_agendamento: selectedTime,
+    forma_pagamento: document.getElementById("payment").value,
+    valor_total: totalFormatado,
+    valor_total_num: total
+  }]);
 
   alert("Agendamento confirmado!");
   location.reload();
 }
 
-// 🔹 RESTANTE IGUAL (não mexi)
+// 🔹 resto igual
 function selectButton(parent, clickedBtn) {
   Array.from(parent.children).forEach(btn => btn.classList.remove("selected"));
   clickedBtn.classList.add("selected");
@@ -281,20 +295,6 @@ function loadProducts() {
 
 function add(id) { cart[id] = (cart[id] || 0) + 1; updateCheckout(); }
 function remove(id) { if(cart[id]) cart[id]--; updateCheckout(); }
-
-function updateCheckout() {
-  const el = document.getElementById("checkout");
-  if (!el) return;
-
-  let html = "";
-  let total = calcularTotal();
-
-  const service = services.find(s => s.id === selectedService);
-  if (service) html += `<p>Serviço: ${service.name} - R$${service.price}</p>`;
-
-  html += `<hr><p style="font-weight:bold;color:#c2185b">Total: R$${total}</p>`;
-  el.innerHTML = html;
-}
 
 loadServices();
 loadProducts();
