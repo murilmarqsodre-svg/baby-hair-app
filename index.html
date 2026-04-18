@@ -8,10 +8,9 @@
     <style>
         :root { --accent: #e19d9d; --dark: #1f1f1f; --card: #2d2d2d; --text: #f5f5f5; --bg: #121212; }
         body { font-family: 'Segoe UI', Roboto, sans-serif; background-color: var(--bg); color: var(--text); display: flex; justify-content: center; padding: 20px; margin: 0; }
-        .container { background: var(--card); border-radius: 20px; width: 100%; max-width: 400px; padding: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.6); border: 1px solid #3d3d3d; }
+        .container { background: var(--card); border-radius: 20px; width: 100%; max-width: 400px; padding: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.6); border: 1px solid #3d3d3d; position: relative; }
         h1 { text-align: center; color: var(--accent); font-size: 26px; font-weight: 300; letter-spacing: 3px; margin-bottom: 30px; }
         
-        /* Seção Profissionais */
         .section-title { font-size: 13px; color: var(--accent); margin-top: 25px; margin-bottom: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
         .list-horizontal { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none; }
         .item-card { min-width: 110px; background: #383838; padding: 15px 10px; border-radius: 15px; text-align: center; cursor: pointer; border: 2px solid transparent; transition: 0.3s; }
@@ -19,22 +18,26 @@
         .item-card .avatar { width: 55px; height: 55px; border-radius: 50%; background: var(--accent); margin: 0 auto 8px; display: flex; align-items: center; justify-content: center; color: var(--bg); font-weight: bold; }
         .item-card p { margin: 0; font-size: 13px; font-weight: 500; }
 
-        /* Carrossel de Produtos */
         .product-card { min-width: 140px; background: #383838; border-radius: 12px; padding: 12px; text-align: center; border: 1px solid #444; }
         .product-price { color: var(--accent); font-weight: bold; margin: 8px 0; display: block; }
         .btn-add { background: transparent; border: 1px solid var(--accent); color: var(--accent); padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 11px; transition: 0.3s; }
-        .btn-add:hover { background: var(--accent); color: var(--bg); }
-
-        /* Estilização de Inputs */
+        
         input, select { width: 100%; padding: 14px; margin-top: 8px; border-radius: 10px; border: 1px solid #444; background: #181818; color: white; box-sizing: border-box; outline: none; }
-        input:focus { border-color: var(--accent); }
-
-        /* Checkout */
+        
+        /* Checkout e Tags de Remoção */
         .checkout-box { background: rgba(0,0,0,0.2); padding: 18px; border-radius: 15px; margin-top: 25px; border: 1px solid var(--accent); }
         .checkout-item { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px; opacity: 0.9; }
-        .total { border-top: 1px solid #444; padding-top: 12px; font-weight: bold; color: var(--accent); font-size: 20px; }
+        .product-tag-list { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
+        .product-tag { background: #444; color: var(--accent); padding: 4px 10px; border-radius: 15px; font-size: 11px; display: flex; align-items: center; gap: 8px; border: 1px solid #555; }
+        .btn-remove { color: #ff8b94; cursor: pointer; font-weight: bold; font-size: 14px; }
         
-        .btn-confirm { width: 100%; padding: 16px; background: var(--accent); color: white; border: none; border-radius: 12px; font-weight: bold; font-size: 17px; margin-top: 25px; cursor: pointer; box-shadow: 0 5px 15px rgba(225, 157, 157, 0.2); }
+        .total { border-top: 1px solid #444; padding-top: 12px; font-weight: bold; color: var(--accent); font-size: 20px; }
+        .btn-confirm { width: 100%; padding: 16px; background: var(--accent); color: white; border: none; border-radius: 12px; font-weight: bold; font-size: 17px; margin-top: 25px; cursor: pointer; }
+
+        #modal-sucesso { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 100; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box;}
+        .modal-content { background: var(--card); padding: 30px; border-radius: 20px; text-align: center; border: 1px solid var(--accent); max-width: 350px; width: 100%; animation: slideUp 0.4s ease; }
+        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .btn-zap { background: #25d366; color: white; border: none; padding: 15px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 20px; font-size: 16px; }
     </style>
 </head>
 <body>
@@ -43,7 +46,7 @@
     <h1>Baby Hair</h1>
 
     <div class="section-title">Selecione a Profissional</div>
-    <div class="list-horizontal" id="profissionais">
+    <div class="list-horizontal">
         <div class="item-card" onclick="selectPro(this, 'Carla Mendes')">
             <div class="avatar">CM</div>
             <p>Carla Mendes</p>
@@ -60,7 +63,7 @@
 
     <div class="section-title">Dados da Cliente</div>
     <input type="text" id="cliente_nome" placeholder="Seu nome completo">
-    <input type="text" id="contato" placeholder="WhatsApp (DDD)">
+    <input type="text" id="contato" placeholder="WhatsApp (DDD)" oninput="maskPhone(this)">
 
     <div class="section-title">Procedimento</div>
     <select id="servico" onchange="updateCheckout()">
@@ -87,18 +90,26 @@
     <div class="section-title">Forma de Pagamento</div>
     <select id="pagamento">
         <option value="Pix">Pix</option>
-        <option value="Cartão de Crédito">Cartão de Crédito</option>
+        <option value="Cartão">Cartão</option>
         <option value="Dinheiro">Dinheiro</option>
     </select>
 
     <div class="checkout-box">
         <div class="checkout-item"><span>Procedimento:</span> <span id="check-servico">R$ 0,00</span></div>
-        <div class="checkout-item"><span>Produtos:</span> <span id="check-produtos">R$ 0,00</span></div>
+        <div id="product-tags" class="product-tag-list"></div>
+        <div class="checkout-item"><span>Total Produtos:</span> <span id="check-produtos">R$ 0,00</span></div>
         <div class="checkout-item total"><span>Total:</span> <span id="check-total">R$ 0,00</span></div>
     </div>
 
     <button onclick="salvar()" id="btn-confirm" class="btn-confirm">Confirmar Agendamento</button>
-    <p id="mensagem" style="text-align:center; margin-top:15px; font-size:14px;"></p>
+</div>
+
+<div id="modal-sucesso">
+    <div class="modal-content">
+        <h2>✨ Quase lá! ✨</h2>
+        <p>Seu agendamento foi registrado.</p>
+        <button class="btn-zap" onclick="enviarZap()">Enviar para WhatsApp</button>
+    </div>
 </div>
 
 <script>
@@ -107,8 +118,14 @@
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let proSelecionada = "";
-    let valorProdutos = 0;
     let listaProdutos = [];
+
+    function maskPhone(i) {
+        let v = i.value.replace(/\D/g, "");
+        v = v.replace(/^(\d{2})(\d)/g, "($1) $2");
+        v = v.replace(/(\d)(\d{4})$/, "$1-$2");
+        i.value = v;
+    }
 
     function selectPro(el, nome) {
         document.querySelectorAll('.item-card').forEach(c => c.classList.remove('selected'));
@@ -117,52 +134,80 @@
     }
 
     function addProduct(nome, preco) {
-        valorProdutos += preco;
-        listaProdutos.push(nome);
+        // João: Agora adicionamos um ID único para cada clique para poder remover individualmente
+        const id = Date.now();
+        listaProdutos.push({ id, nome, preco });
+        updateCheckout();
+    }
+
+    function removeProduct(id) {
+        listaProdutos = listaProdutos.filter(p => p.id !== id);
         updateCheckout();
     }
 
     function updateCheckout() {
-        const servicoPreco = parseFloat(document.getElementById('servico').value);
+        const servicoPreco = parseFloat(document.getElementById('servico').value) || 0;
+        const totalProdutos = listaProdutos.reduce((acc, p) => acc + p.preco, 0);
+        
+        // Maria: Atualiza a lista visual de tags
+        const tagContainer = document.getElementById('product-tags');
+        tagContainer.innerHTML = "";
+        listaProdutos.forEach(p => {
+            tagContainer.innerHTML += `
+                <div class="product-tag">
+                    ${p.nome} (R$ ${p.preco})
+                    <span class="btn-remove" onclick="removeProduct(${p.id})">✕</span>
+                </div>
+            `;
+        });
+
         document.getElementById('check-servico').innerText = `R$ ${servicoPreco.toFixed(2)}`;
-        document.getElementById('check-produtos').innerText = `R$ ${valorProdutos.toFixed(2)}`;
-        document.getElementById('check-total').innerText = `R$ ${(servicoPreco + valorProdutos).toFixed(2)}`;
+        document.getElementById('check-produtos').innerText = `R$ ${totalProdutos.toFixed(2)}`;
+        document.getElementById('check-total').innerText = `R$ ${(servicoPreco + totalProdutos).toFixed(2)}`;
     }
 
     async function salvar() {
         const btn = document.getElementById('btn-confirm');
         const nome = document.getElementById('cliente_nome').value;
         const zap = document.getElementById('contato').value;
-        const servTxt = document.getElementById('servico').options[document.getElementById('servico').selectedIndex].text;
+        const servSelect = document.getElementById('servico');
+        const servTxt = servSelect.options[servSelect.selectedIndex].text;
         const formaPag = document.getElementById('pagamento').value;
         const total = document.getElementById('check-total').innerText;
 
-        if (!nome || !proSelecionada || document.getElementById('servico').value == "0") {
-            alert("Por favor, preencha todos os campos e selecione a profissional."); return;
+        if (!nome || !proSelecionada || servSelect.value == "0") {
+            alert("Preencha nome, profissional e procedimento!"); return;
         }
 
-        btn.disabled = true; btn.innerText = "Agendando...";
+        btn.disabled = true; btn.innerText = "Salvando...";
 
         try {
+            const nomesProdutos = listaProdutos.map(p => p.nome).join(", ");
             const { error } = await _supabase.from('lista_agendamentos').insert([{ 
-                cliente_nome: nome, 
-                contato: zap, 
-                servico: servTxt,
-                barbeiro: proSelecionada, // Mantemos o nome da coluna no banco, mas salvamos a profissional aqui
-                produtos: listaProdutos.join(", "),
-                forma_pagamento: formaPag,
-                valor_total: total
+                cliente_nome: nome, contato: zap, servico: servTxt,
+                barbeiro: proSelecionada, produtos: nomesProdutos,
+                forma_pagamento: formaPag, valor_total: total
             }]);
-
             if (error) throw error;
-            document.getElementById('mensagem').innerText = "✅ Agendamento realizado com sucesso!";
-            document.getElementById('mensagem').style.color = "#a8e6cf";
+            document.getElementById('modal-sucesso').style.display = 'flex';
         } catch (e) {
-            document.getElementById('mensagem').innerText = "Erro: " + e.message;
-            document.getElementById('mensagem').style.color = "#ff8b94";
+            alert("Erro: " + e.message);
         } finally {
             btn.disabled = false; btn.innerText = "Confirmar Agendamento";
         }
+    }
+
+    function enviarZap() {
+        const nome = document.getElementById('cliente_nome').value;
+        const pro = proSelecionada;
+        const total = document.getElementById('check-total').innerText;
+        const servTxt = document.getElementById('servico').options[document.getElementById('servico').selectedIndex].text;
+        const nomesProdutos = listaProdutos.map(p => p.nome).join(", ") || "Nenhum";
+        
+        const telefoneDono = "5573982139332"; 
+        const msg = `Olá! Agendamento Baby Hair:%0A%0A🌸 *Cliente:* ${nome}%0A💇‍♀️ *Profissional:* ${pro}%0A✂️ *Serviço:* ${servTxt}%0A💄 *Produtos:* ${nomesProdutos}%0A💰 *Total:* ${total}%0A%0AConfirma?`;
+        
+        window.open(`https://wa.me/${telefoneDono}?text=${msg}`, '_blank');
     }
 </script>
 </body>
