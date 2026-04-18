@@ -3,61 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baby Hair - Agendamento Completo</title>
+    <title>Baby Hair - Agendamento</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
+        /* CSS ORIGINAL QUE VOCÊ VALIDOU */
         :root { --accent: #e19d9d; --bg: #0a0a0a; --card: #161616; --text: #ffffff; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         
-        .header { text-align: center; margin: 30px 0; }
-        .header h1 { color: var(--accent); letter-spacing: 4px; font-weight: 300; text-transform: uppercase; }
+        .header { text-align: center; margin-bottom: 40px; margin-top: 20px; }
+        .header h1 { font-weight: 300; letter-spacing: 4px; color: var(--accent); text-transform: uppercase; margin: 0; }
+        .header p { color: #666; font-size: 14px; margin-top: 5px; }
 
-        .section-title { width: 100%; max-width: 400px; color: var(--accent); font-size: 14px; text-transform: uppercase; margin: 20px 0 10px; border-bottom: 1px solid #222; padding-bottom: 5px; }
+        .services-container { width: 100%; max-width: 450px; }
+        
+        .service-card { 
+            background: var(--card); 
+            border: 1px solid #222; 
+            border-radius: 20px; 
+            padding: 20px; 
+            margin-bottom: 15px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        
+        .service-info { text-align: left; }
+        .service-info h3 { margin: 0; font-size: 18px; font-weight: 500; color: #eee; }
+        .service-info p { margin: 5px 0 0; color: var(--accent); font-weight: bold; font-size: 16px; }
 
-        .wrapper { width: 100%; max-width: 400px; }
+        .btn-book { 
+            background-color: var(--accent); 
+            color: white; 
+            border: none; 
+            padding: 12px 20px; 
+            border-radius: 12px; 
+            font-weight: bold; 
+            cursor: pointer;
+        }
+
+        .product-img { width: 60px; height: 60px; border-radius: 12px; object-fit: cover; margin-right: 15px; border: 1px solid #333; }
         
-        /* Cards de Serviço e Produto */
-        .card { background: var(--card); border: 1px solid #222; border-radius: 20px; padding: 15px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
-        .product-img { width: 60px; height: 60px; border-radius: 12px; object-fit: cover; margin-right: 15px; }
+        .input-field { width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #333; background: #000; color: #fff; margin-bottom: 15px; box-sizing: border-box; }
         
-        /* Formulário de Agendamento */
-        .form-group { width: 100%; margin-bottom: 15px; }
-        input, select { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #333; background: #000; color: #fff; box-sizing: border-box; }
-        
-        .btn-final { background: var(--accent); color: white; border: none; padding: 15px; border-radius: 15px; width: 100%; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 20px; }
+        .section-title { width: 100%; max-width: 450px; color: var(--accent); font-size: 12px; text-transform: uppercase; margin: 20px 0 10px; border-bottom: 1px solid #222; padding-bottom: 5px; }
     </style>
 </head>
 <body>
 
     <div class="header">
         <h1>BABY HAIR</h1>
-        <p style="color: #666;">Agendamento & Vitrine</p>
+        <p>Agendamento Profissional</p>
     </div>
 
-    <div class="wrapper">
-        <div class="form-group">
-            <input type="text" id="cliente-nome" placeholder="Seu nome completo">
-        </div>
+    <div class="services-container">
+        <input type="text" id="cliente-nome" class="input-field" placeholder="Seu nome">
+        <input type="tel" id="cliente-whatsapp" class="input-field" placeholder="Seu WhatsApp">
 
-        <div class="section-title">Nossos Serviços</div>
-        <div id="lista-servicos">Carregando...</div>
+        <div class="section-title">Serviços</div>
+        <div id="lista-servicos">Carregando serviços...</div>
 
-        <div class="section-title">Escolha o Profissional</div>
-        <select id="profissional">
+        <div class="section-title">Profissional, Data e Hora</div>
+        <select id="profissional" class="input-field">
             <option value="Murilo">Murilo</option>
             <option value="Taty">Taty</option>
         </select>
-
-        <div class="section-title">Data e Horário</div>
         <div style="display: flex; gap: 10px;">
-            <input type="date" id="data-agend">
-            <input type="time" id="hora-agend">
+            <input type="date" id="data-agend" class="input-field">
+            <input type="time" id="hora-agend" class="input-field">
         </div>
 
         <div class="section-title">Vitrine de Mimos</div>
-        <div id="lista-produtos">Carregando mimos...</div>
+        <div id="lista-produtos">Buscando mimos...</div>
 
-        <button class="btn-final" onclick="confirmarTudo()">Finalizar Agendamento</button>
+        <button class="btn-book" style="width: 100%; padding: 18px; font-size: 16px; margin-top: 20px;" onclick="finalizarTudo()">CONFIRMAR AGENDAMENTO</button>
     </div>
 
 <script>
@@ -65,71 +84,64 @@
     const urlParams = new URLSearchParams(window.location.search);
     const SALAO_ID = urlParams.get('salao') || 1;
 
-    let servicoSelecionado = null;
+    let selectedSvc = null;
 
-    async function carregarDados() {
-        // Carrega Serviços
+    async function load() {
+        // Carrega Serviços do Admin
         const { data: svcs } = await _supabase.from('servicos_cadastrados').select('*').eq('admin_id', SALAO_ID);
         const sContainer = document.getElementById('lista-servicos');
         sContainer.innerHTML = "";
         svcs?.forEach(s => {
-            sContainer.innerHTML += `
-                <div class="card" onclick="selecionarServico(this, '${s.nome}', ${s.preco})">
-                    <div><strong>${s.nome}</strong><br><span style="color:var(--accent)">R$ ${s.preco.toFixed(2)}</span></div>
-                    <input type="radio" name="svc-radio">
-                </div>`;
+            const card = document.createElement('div');
+            card.className = 'service-card';
+            card.onclick = () => {
+                document.querySelectorAll('.service-card').forEach(c => c.style.borderColor = '#222');
+                card.style.borderColor = 'var(--accent)';
+                selectedSvc = s;
+            };
+            card.innerHTML = `<div class="service-info"><h3>${s.nome}</h3><p>R$ ${s.preco.toFixed(2)}</p></div><div style="color:var(--accent)">★</div>`;
+            sContainer.appendChild(card);
         });
 
-        // Carrega Produtos com Imagem
+        // Carrega Produtos do Admin
         const { data: prods } = await _supabase.from('produtos_cadastrados').select('*').eq('admin_id', SALAO_ID);
         const pContainer = document.getElementById('lista-produtos');
         pContainer.innerHTML = "";
         prods?.forEach(p => {
             pContainer.innerHTML += `
-                <div class="card">
+                <div class="service-card" style="cursor: default;">
                     <div style="display:flex; align-items:center;">
                         <img src="${p.imagem_url || 'https://via.placeholder.com/60'}" class="product-img">
-                        <div><strong>${p.nome}</strong><br><span style="color:var(--accent)">R$ ${p.preco.toFixed(2)}</span></div>
+                        <div class="service-info"><h3>${p.nome}</h3><p>R$ ${p.preco.toFixed(2)}</p></div>
                     </div>
                 </div>`;
         });
     }
 
-    function selecionarServico(el, nome, preco) {
-        document.querySelectorAll('.card').forEach(c => c.style.borderColor = '#222');
-        el.style.borderColor = 'var(--accent)';
-        el.querySelector('input').checked = true;
-        servicoSelecionado = { nome, preco };
-    }
-
-    async function confirmarTudo() {
+    async function finalizarTudo() {
         const nome = document.getElementById('cliente-nome').value;
+        const zap = document.getElementById('cliente-whatsapp').value;
         const prof = document.getElementById('profissional').value;
         const data = document.getElementById('data-agend').value;
         const hora = document.getElementById('hora-agend').value;
 
-        if(!nome || !servicoSelecionado || !data || !hora) {
-            return alert("Por favor, preencha seu nome, escolha um serviço, data e horário!");
-        }
+        if(!nome || !selectedSvc || !data || !hora) return alert("Preencha seu nome, serviço, data e hora!");
 
         const { error } = await _supabase.from('agendamentos').insert([{
             nome: nome,
-            servico: servicoSelecionado.nome,
-            preco: servicoSelecionado.preco,
+            whatsapp: zap,
+            servico: selectedSvc.nome,
+            preco: selectedSvc.preco,
             profissional: prof,
             data_hora: `${data} ${hora}`,
             salao_id: SALAO_ID
         }]);
 
-        if(!error) {
-            alert("Sucesso! Agendamento confirmado para " + data + " às " + hora);
-            location.reload();
-        } else {
-            alert("Erro: " + error.message);
-        }
+        if(!error) { alert("Agendado com sucesso!"); location.reload(); }
+        else { alert("Erro ao sincronizar: " + error.message); }
     }
 
-    carregarDados();
+    load();
 </script>
 </body>
 </html>
